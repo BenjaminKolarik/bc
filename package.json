@@ -1,0 +1,12 @@
+{
+  "name": "lr-project",
+  "version": "1.0.0",
+  "description": "A project for linear regression analysis",
+  "main": "LR.py",
+  "scripts": {
+    "start": "python codes/ANOVA.py"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC"
+}

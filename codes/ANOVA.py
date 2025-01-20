@@ -1,0 +1,258 @@
+import pandas as pd
+import numpy as np
+from openpyxl import Workbook, load_workbook
+from openpyxl.chart import ScatterChart, Reference
+from openpyxl.styles import NamedStyle
+from openpyxl.chart.trendline import Trendline
+from openpyxl.chart.series import Series
+
+
+def without_nan(array):
+    suma = []
+    priemer = []
+    pocty = []
+    bez_nan = []
+
+    for row in array:
+        valid_values = [i for i in row if not isinstance(i, float) or not i != i]
+        bez_nan.extend(valid_values)
+        sumy = sum(i for i in row if not isinstance(i, float) or not i != i)
+        suma.append(sumy)
+        pocty.append(len(valid_values))
+
+    bez_nan = [float(i) for i in bez_nan]
+    priemer = [float(suma[i] / pocty[i]) for i in range(len(pocty))]
+    suma_bez_nan = np.sum(~np.isnan(array))
+
+    return bez_nan, suma, pocty, priemer, suma_bez_nan
+
+
+def priemer_and_priemer_c(count, suma):
+
+    priemer = [suma[i] / pocty[i] for i in range(len(count))]
+    priemer_c = sum(suma) / sum(count)
+
+    return priemer, priemer_c
+
+def SSA(count, priemer, priemer_c):
+    SSA_values = []
+
+    for i in range(len(count)):
+        tmp = ((priemer[i]- priemer_c) **2) * count[i]
+        SSA_values.append(tmp)
+
+    SSA_values = [float(i) for i in SSA_values]
+    SSA_value = sum(SSA_values)
+
+    return SSA_values, SSA_value
+
+def SSE(count, priemer, bez_nan):
+    start_index = 0
+    SSE_values = []
+
+    for i in range(len(count)):
+        end_index = start_index + count[i]
+        group_values = bez_nan[start_index:end_index]
+        tmp = sum((value - priemer[i]) **2 for value in group_values)
+        SSE_values.append(tmp)
+        start_index = end_index
+
+    SSE_values = [float(i) for i in SSE_values]
+    SSE_value = sum(SSE_values)
+
+    return SSE_values, SSE_value
+
+def SST(count, bez_nan, priemer_c):
+    start_index = 0
+    SST_values = []
+
+    for i in range(len(count)):
+
+        end_index = start_index + count[i]
+        group_values = bez_nan[start_index:end_index]
+        tmp = sum((value - priemer_c) **2 for value in group_values)
+        SST_values.append(tmp)
+        start_index = end_index
+
+        SST_values = [float(i) for i in SST_values]
+        SST_value = sum(SST_values)
+
+    return SST_values, SST_value
+
+def df():
+    df = []
+
+    df.append(float(len(pocty) - 1))
+    df.append(float(sum_bez_nan - (len(pocty))))
+    df.append(float((sum_bez_nan - 1)))
+
+    return df
+
+def F_stat(SSA, SSE, count, sum_bez_nan):
+
+    MSA = SSA / (len(count) - 1)
+    MSE = SSE / (sum_bez_nan - (len(count)))
+    F = MSA/MSE
+
+    return MSA, MSE, F
+
+
+def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, ssa_value, ssa_values, sse_value, sse_values, sst_value, sst_values,
+                                   df_values, MSA, MSE, F, file_name='output_data.xlsx'):
+
+
+    max_length = max(len(priemer) + 1, len(ssa_values) + 1, len(sse_values) + 1, len(values_column))
+
+    priemer = priemer + [priemer_c] + [None] * (max_length - len(priemer) - 1)
+    ssa_values = ssa_values + [ssa_value] + [None] * (max_length - len(ssa_values) - 1)
+    sse_values = sse_values + [sse_value] + [None] * (max_length - len(sse_values) - 1)
+    sst_values = sst_values + [sst_value] + [None] * (max_length - len(sst_values) - 1)
+    values_column = values_column + [None] * (max_length - len(values_column))
+
+    df1 = pd.DataFrame({
+        'Priemer': priemer,
+        'Values': values_column,
+        'SSA Values': [value if value is not None else None for value in ssa_values],
+        'SSE Values': [value if value is not None else None for value in sse_values],
+        'SST Values': [value if value is not None else None for value in sst_values]
+    })
+
+    df2 = pd.DataFrame({
+        '': ['Faktor', 'Nahoda', 'Spolu'],
+
+        'Values': [
+            "SSA = {:.2f}".format(ssa_value),
+            "SSE = {:.2f}".format(sse_value),
+            "SST = {:.2f}".format(sst_value)],
+
+        'df': df_values,
+
+        'MS': ['MSA', 'MSE', float('nan')],
+
+        'MS_v': [
+            MSA,
+            MSE,
+            float('nan')],
+
+        'F_stat': [
+            "F = {:.2f}".format(F),
+            float('nan'),
+            float('nan')]
+    })
+
+    with pd.ExcelWriter(file_name) as writer:
+        df1.to_excel(writer, sheet_name='Výpočtová tabuľka', index=False)
+        df2.to_excel(writer, sheet_name='ANOVA', index=False)
+
+    workbook = load_workbook(file_name)
+    sheet1 = workbook['Výpočtová tabuľka']
+    sheet2 = workbook['ANOVA']
+
+    number_format = NamedStyle
+    for sheet in [sheet1, sheet2]:
+        for col in sheet.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if isinstance(cell.value, (int, float)):
+                        cell.number_format = '0.00'
+                        current_length = len(str(int(cell.value))) + 3
+                        if current_length > max_length:
+                            max_length = current_length
+                    elif len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+
+                adjusted_width = (max_length + 2) * 1.2
+                sheet.column_dimensions[column].width = adjusted_width
+
+    workbook.save(file_name)
+
+    print(f"Data has been written to {file_name}")
+
+
+def chart(array, array1, excel_file='output_data.xlsx', sheet_name='Graf'):
+    df = pd.DataFrame({
+        'X': array,
+        'Y': array1
+    })
+
+    try:
+        wb = load_workbook(excel_file)
+    except FileNotFoundError:
+        wb = Workbook()
+
+    if sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+    else:
+        ws = wb.create_sheet(sheet_name)
+
+    # Write data into the sheet
+    for r_idx, row in enumerate(df.itertuples(index=False), 2):
+        for c_idx, value in enumerate(row, 1):
+            ws.cell(row=r_idx, column=c_idx, value=value)
+    ws.cell(row=1, column=1, value="X")
+    ws.cell(row=1, column=2, value="Y")
+
+    # Create scatter chart
+    scatter_chart = ScatterChart()
+    scatter_chart.title = "Scatter Plot with Regression Line"
+    scatter_chart.style = 13
+    scatter_chart.x_axis.title = 'X'
+    scatter_chart.y_axis.title = 'Y'
+
+    # Set axis limits
+    scatter_chart.x_axis.scaling.min = 0
+    scatter_chart.x_axis.scaling.max = 300
+    scatter_chart.y_axis.scaling.min = 0
+    scatter_chart.y_axis.scaling.max = 2500
+
+    # Create references for data
+    xvalues = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
+    yvalues = Reference(ws, min_col=2, min_row=2, max_row=len(df) + 1)
+
+    # Add data as a series to the chart
+    series = Series(yvalues, xvalues)
+    scatter_chart.series.append(series)
+
+    # Add the chart to the worksheet
+    ws.add_chart(scatter_chart, "E5")
+
+    # Save the workbook
+    wb.save(excel_file)
+    print(f"Chart has been added and file saved as '{excel_file}'.")
+
+
+
+data = pd.read_excel("./input/mtcars/tst.xlsx")
+
+P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
+P_array = P_data.to_numpy()
+
+bez_nan, suma, pocty, priemer, suma_bez_nan = without_nan(P_array)
+
+priemer, priemer_c = priemer_and_priemer_c(pocty, suma)
+sum_bez_nan = np.sum(~np.isnan(P_array))
+
+SSA_values, SSA_value = SSA(pocty, priemer, priemer_c)
+SSE_values, SSE_value = SSE(pocty, priemer, bez_nan)
+SST_values, SST_value = SST(pocty, bez_nan, priemer_c)
+df = df()
+MSA, MSE, F = F_stat(SSA_value, SSE_value, pocty, sum_bez_nan)
+
+values_column = [','.join(map(str, row)) for row in P_array]
+
+
+write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, SSA_value, SSA_values, SSE_value, SSE_values, SST_value, SST_values, df, MSA, MSE, F)
+#chart(values_column, priemer)
+
+
+
+
+
+
+
+
+
