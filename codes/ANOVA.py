@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from openpyxl import Workbook, load_workbook
@@ -98,8 +99,9 @@ def F_stat(SSA, SSE, count, sum_bez_nan):
 
 
 def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, ssa_value, ssa_values, sse_value, sse_values, sst_value, sst_values,
-                                   df_values, MSA, MSE, F, file_name='output_data.xlsx'):
+                                   df_values, MSA, MSE, F, file_name='output_data.xlsx', output_dir='../output/'):
 
+    file_path = os.path.join(output_dir, file_name)
 
     max_length = max(len(priemer) + 1, len(ssa_values) + 1, len(sse_values) + 1, len(values_column))
 
@@ -140,11 +142,11 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
             float('nan')]
     })
 
-    with pd.ExcelWriter(file_name) as writer:
+    with pd.ExcelWriter(file_path) as writer:
         df1.to_excel(writer, sheet_name='Výpočtová tabuľka', index=False)
         df2.to_excel(writer, sheet_name='ANOVA', index=False)
 
-    workbook = load_workbook(file_name)
+    workbook = load_workbook(file_path)
     sheet1 = workbook['Výpočtová tabuľka']
     sheet2 = workbook['ANOVA']
 
@@ -168,9 +170,9 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
                 adjusted_width = (max_length + 2) * 1.2
                 sheet.column_dimensions[column].width = adjusted_width
 
-    workbook.save(file_name)
+    workbook.save(file_path)
 
-    print(f"Data has been written to {file_name}")
+    print(f"Data has been written to {file_path}")
 
 
 def chart(array, array1, excel_file='output_data.xlsx', sheet_name='Graf'):
@@ -226,7 +228,7 @@ def chart(array, array1, excel_file='output_data.xlsx', sheet_name='Graf'):
 
 
 
-data = pd.read_excel("./input/mtcars/tst.xlsx")
+data = pd.read_excel("../input/mtcars/tst.xlsx")
 
 P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
 P_array = P_data.to_numpy()
