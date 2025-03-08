@@ -3,14 +3,14 @@ import pandas as pd
 import numpy as np
 from openpyxl import Workbook, load_workbook
 from openpyxl.chart import ScatterChart, Reference
-from openpyxl.styles import NamedStyle
-from openpyxl.chart.trendline import Trendline
+from openpyxl.styles import NamedStyle, Alignment
 from openpyxl.chart.series import Series
+from scipy.stats import f
+
 
 
 def without_nan(array):
     suma = []
-    priemer = []
     pocty = []
     bez_nan = []
 
@@ -22,16 +22,16 @@ def without_nan(array):
         pocty.append(len(valid_values))
 
     bez_nan = [float(i) for i in bez_nan]
-    priemer = [float(suma[i] / pocty[i]) for i in range(len(pocty))]
     suma_bez_nan = np.sum(~np.isnan(array))
 
-    return bez_nan, suma, pocty, priemer, suma_bez_nan
+    return bez_nan, suma, pocty, suma_bez_nan
 
 
 def priemer_and_priemer_c(count, suma):
 
     priemer = [suma[i] / pocty[i] for i in range(len(count))]
-    priemer_c = sum(suma) / sum(count)
+    #toto asi treba zmenit :D, resp. zmenit zapis do excelu, lebo to je matuce
+    priemer_c = float(sum(suma) / sum(count))
 
     return priemer, priemer_c
 
@@ -76,18 +76,13 @@ def SST(count, bez_nan, priemer_c):
         start_index = end_index
 
         SST_values = [float(i) for i in SST_values]
-        SST_value = sum(SST_values)
+    SST_value = sum(SST_values)
 
     return SST_values, SST_value
 
-def df():
-    df = []
+def df(pocty, sum_bez_nan):
 
-    df.append(float(len(pocty) - 1))
-    df.append(float(sum_bez_nan - (len(pocty))))
-    df.append(float((sum_bez_nan - 1)))
-
-    return df
+    return [float(len(pocty) - 1), float(sum_bez_nan - (len(pocty))), float(sum_bez_nan - 1)]
 
 def F_stat(SSA, SSE, count, sum_bez_nan):
 
@@ -97,9 +92,17 @@ def F_stat(SSA, SSE, count, sum_bez_nan):
 
     return MSA, MSE, F
 
+def validate_f_statistic(degrees_of_freedom, f_statistic):
 
+    significance_level = float(input("Zadajte hodnotu hladiny významnosti (napr. 0.95): "))
+    p_value = f.sf(f_statistic, degrees_of_freedom[0], degrees_of_freedom[1])
+    is_valid = f_statistic > f.ppf(significance_level, degrees_of_freedom[0], degrees_of_freedom[1]) and p_value < significance_level
+    print(p_value, is_valid, significance_level)
+    return is_valid, f_statistic, p_value, significance_level
+
+#prepisat cely zapis do excelu, toto je bs
 def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, ssa_value, ssa_values, sse_value, sse_values, sst_value, sst_values,
-                                   df_values, MSA, MSE, F, file_name='output_data.xlsx', output_dir='../output/'):
+                                   df_values, MSA, MSE, F, p_value, significance_value, file_name='output_data.xlsx', output_dir='../output/'):
 
     file_path = os.path.join(output_dir, file_name)
 
@@ -113,33 +116,47 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
 
     df1 = pd.DataFrame({
         'Priemer': priemer,
-        'Values': values_column,
-        'SSA Values': [value if value is not None else None for value in ssa_values],
+        'Hodnoty predajní': values_column,
+        'SSA hodnoty': [value if value is not None else None for value in ssa_values],
         'SSE Values': [value if value is not None else None for value in sse_values],
         'SST Values': [value if value is not None else None for value in sst_values]
     })
 
     df2 = pd.DataFrame({
-        '': ['Faktor', 'Nahoda', 'Spolu'],
+        'Zdroj variability premennej Y': ['Faktor', 'Nahoda', 'Spolu'],
 
-        'Values': [
+        'Súčet štvorcov odchýlok SS': [
             "SSA = {:.2f}".format(ssa_value),
             "SSE = {:.2f}".format(sse_value),
             "SST = {:.2f}".format(sst_value)],
 
-        'df': df_values,
+        'Počet stupňov voľnosti df': df_values,
 
-        'MS': ['MSA', 'MSE', float('nan')],
-
-        'MS_v': [
-            MSA,
-            MSE,
+        'Priemerný súčet štvorcov MS': [
+            "MSA = {:.2f}".format(MSA),
+            "MSE = {:.2f}".format(MSE),
             float('nan')],
 
         'F_stat': [
             "F = {:.2f}".format(F),
             float('nan'),
-            float('nan')]
+            float('nan')],
+
+        'P-value': [
+            "P-value = {:.7f}".format(p_value),
+            float('nan'),
+            float('nan')],
+
+        'Hladina významnosti': [
+            "Hladina významnosti = {:.2f}".format(significance_value),
+            float('nan'),
+            float('nan')],
+
+        'ŠV modelu': [
+            "Áno" if validation and p_value < (1 -significance_value) else "Nie",
+            None,
+            None,
+        ]
     })
 
     with pd.ExcelWriter(file_path) as writer:
@@ -149,6 +166,9 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
     workbook = load_workbook(file_path)
     sheet1 = workbook['Výpočtová tabuľka']
     sheet2 = workbook['ANOVA']
+
+    for cell in sheet1['B']:
+        cell.alignment = Alignment(horizontal='center')
 
     number_format = NamedStyle
     for sheet in [sheet1, sheet2]:
@@ -220,7 +240,7 @@ def chart(array, array1, excel_file='output_data.xlsx', sheet_name='Graf'):
     scatter_chart.series.append(series)
 
     # Add the chart to the worksheet
-    ws.add_chart(scatter_chart, "E5")
+    ws.add_chart(scatter_chart, "D2")
 
     # Save the workbook
     wb.save(excel_file)
@@ -233,7 +253,7 @@ data = pd.read_excel("../input/mtcars/tst.xlsx")
 P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
 P_array = P_data.to_numpy()
 
-bez_nan, suma, pocty, priemer, suma_bez_nan = without_nan(P_array)
+bez_nan, suma, pocty, suma_bez_nan = without_nan(P_array)
 
 priemer, priemer_c = priemer_and_priemer_c(pocty, suma)
 sum_bez_nan = np.sum(~np.isnan(P_array))
@@ -241,13 +261,14 @@ sum_bez_nan = np.sum(~np.isnan(P_array))
 SSA_values, SSA_value = SSA(pocty, priemer, priemer_c)
 SSE_values, SSE_value = SSE(pocty, priemer, bez_nan)
 SST_values, SST_value = SST(pocty, bez_nan, priemer_c)
-df = df()
+df = df(pocty, sum_bez_nan)
 MSA, MSE, F = F_stat(SSA_value, SSE_value, pocty, sum_bez_nan)
+validation, f_statistic, p_value, significance_level = validate_f_statistic(df, F)
 
 values_column = [','.join(map(str, row)) for row in P_array]
 
 
-write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, SSA_value, SSA_values, SSE_value, SSE_values, SST_value, SST_values, df, MSA, MSE, F)
+write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, SSA_value, SSA_values, SSE_value, SSE_values, SST_value, SST_values, df, MSA, MSE, F, p_value, significance_level)
 #chart(values_column, priemer)
 
 
