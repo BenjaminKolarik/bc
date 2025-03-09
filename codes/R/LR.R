@@ -2,7 +2,7 @@ library(readxl)
 library(ggplot2)
 
 # Load the data
-data <- read_excel("./input/mtcars/LR.xlsx")
+data <- read_excel("../../input/mtcars/LR.xlsx")
 
 y <- data$y[1:10]
 x <- data$x[1:10]

@@ -7,7 +7,7 @@ from scipy.stats import f
 import matplotlib.pyplot as plt
 
 def load_data():
-    data = pd.read_excel("../input/mtcars/LR.xlsx")
+    data = pd.read_excel("../../input/mtcars/LR.xlsx")
     lr_data = data[['y', 'x']]
     lr_array = lr_data.to_numpy()
     sum_values = lr_array[-1, :]
@@ -179,7 +179,7 @@ def write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_
 
     print(f"Data and image have been written to {file_path}")
     
-def plot_regression_line(x_values, y_values, b0, b1, image_path='../output/LR_plot.png'):
+def plot_regression_line(x_values, y_values, b0, b1, image_path='../../output/LR_plot.png'):
     regression_line = b0 + b1 * x_values
     
     plt.figure(figsize=(10, 6))

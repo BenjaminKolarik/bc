@@ -4,7 +4,7 @@ library(tidyr)
 library(ggplot2)
 
 # Read the data
-data <- read_excel("./input/mtcars/tst.xlsx")
+data <- read_excel("../../input/mtcars/tst.xlsx")
 
 data <- data %>%
   mutate(across(contains("Predaj"), as.numeric))

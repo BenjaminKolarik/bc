@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def load_data():
-    data = pd.read_excel("../input/mtcars/LR.xlsx")
+    data = pd.read_excel("../../input/mtcars/LR.xlsx")
     lr_data = data[['y', 'x']]
     lr_array = lr_data.to_numpy()
     sum_values = lr_array[-1, :]
