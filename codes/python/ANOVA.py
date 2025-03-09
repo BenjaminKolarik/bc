@@ -1,10 +1,11 @@
 import os
 import pandas as pd
 import numpy as np
-from openpyxl import Workbook, load_workbook
-from openpyxl.chart import ScatterChart, Reference
+import matplotlib.pyplot as plt
+import seaborn as sns
+from openpyxl import load_workbook
 from openpyxl.styles import NamedStyle, Alignment
-from openpyxl.chart.series import Series
+from openpyxl.drawing.image import Image
 from scipy.stats import f
 
 
@@ -102,7 +103,7 @@ def validate_f_statistic(degrees_of_freedom, f_statistic):
 
 #prepisat cely zapis do excelu, toto je bs
 def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, ssa_value, ssa_values, sse_value, sse_values, sst_value, sst_values,
-                                   df_values, MSA, MSE, F, p_value, significance_value, file_name='output_data.xlsx', output_dir='../output/'):
+                                   df_values, MSA, MSE, F, p_value, significance_value, file_name='output_data.xlsx', output_dir='../../output/', image_path='../../output/ANOVA_plot.png'):
 
     file_path = os.path.join(output_dir, file_name)
 
@@ -190,65 +191,37 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
                 adjusted_width = (max_length + 2) * 1.2
                 sheet.column_dimensions[column].width = adjusted_width
 
+    if os.path.exists(image_path):
+        sheet3 = workbook.create_sheet('Boxplot')
+        img = Image(image_path)
+        sheet3.add_image(img, 'A1')
+    else:
+        print(f"Warning: Image file not found at {image_path}, skipping image insertion")
+
     workbook.save(file_path)
 
-    print(f"Data has been written to {file_path}")
+    print(f"Data and image have been written to {file_path}")
 
 
-def chart(array, array1, excel_file='output_data.xlsx', sheet_name='Graf'):
-    df = pd.DataFrame({
-        'X': array,
-        'Y': array1
-    })
+def boxplot(values_column, priemer, image_path='../../output/ANOVA_plot.png'):
+    data = [list(map(float, row.split(','))) for row in values_column]
 
-    try:
-        wb = load_workbook(excel_file)
-    except FileNotFoundError:
-        wb = Workbook()
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(data=data)
 
-    if sheet_name in wb.sheetnames:
-        ws = wb[sheet_name]
-    else:
-        ws = wb.create_sheet(sheet_name)
+    plt.title('Boxplot', fontsize=14)
+    plt.xlabel('Store', fontsize=12)
+    plt.ylabel('Value', fontsize=12)
 
-    # Write data into the sheet
-    for r_idx, row in enumerate(df.itertuples(index=False), 2):
-        for c_idx, value in enumerate(row, 1):
-            ws.cell(row=r_idx, column=c_idx, value=value)
-    ws.cell(row=1, column=1, value="X")
-    ws.cell(row=1, column=2, value="Y")
+    for i, p in enumerate(priemer):
+        plt.axhline(p, color='r', linestyle='--', label=f'Priemer {i + 1} = {p:.2f}')
 
-    # Create scatter chart
-    scatter_chart = ScatterChart()
-    scatter_chart.title = "Scatter Plot with Regression Line"
-    scatter_chart.style = 13
-    scatter_chart.x_axis.title = 'X'
-    scatter_chart.y_axis.title = 'Y'
+    plt.legend(title='Priemer', fontsize=12)
+    plt.xticks(ticks=range(len(data)), labels=[f'Store {i + 1}' for i in range(len(data))])
+    plt.savefig(image_path)
+    plt.show()
 
-    # Set axis limits
-    scatter_chart.x_axis.scaling.min = 0
-    scatter_chart.x_axis.scaling.max = 300
-    scatter_chart.y_axis.scaling.min = 0
-    scatter_chart.y_axis.scaling.max = 2500
-
-    # Create references for data
-    xvalues = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-    yvalues = Reference(ws, min_col=2, min_row=2, max_row=len(df) + 1)
-
-    # Add data as a series to the chart
-    series = Series(yvalues, xvalues)
-    scatter_chart.series.append(series)
-
-    # Add the chart to the worksheet
-    ws.add_chart(scatter_chart, "D2")
-
-    # Save the workbook
-    wb.save(excel_file)
-    print(f"Chart has been added and file saved as '{excel_file}'.")
-
-
-
-data = pd.read_excel("../input/mtcars/tst.xlsx")
+data = pd.read_excel("../../input/mtcars/tst.xlsx")
 
 P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
 P_array = P_data.to_numpy()
@@ -267,9 +240,8 @@ validation, f_statistic, p_value, significance_level = validate_f_statistic(df, 
 
 values_column = [','.join(map(str, row)) for row in P_array]
 
-
+boxplot(values_column, priemer)
 write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, SSA_value, SSA_values, SSE_value, SSE_values, SST_value, SST_values, df, MSA, MSE, F, p_value, significance_level)
-#chart(values_column, priemer)
 
 
 

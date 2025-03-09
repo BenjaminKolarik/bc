@@ -78,7 +78,7 @@ def validate_f_statistic(msm, mse, degrees_of_freedom):
     return is_valid, f_statistic, p_value, significance_level
 
 
-def write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_diff_mean, y_diff_mean, xy_diff_mean_product, x_diff_mean_squared, y_diff_mean_squared, balancing_line, ssm, ssr, sst, degrees_of_freedom, msr, mse, f_statistic, p_value, significance_value, validation, file_name='output_data_LR.xlsx', output_dir='../output/', image_path='../output/LR_plot.png'):
+def write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_diff_mean, y_diff_mean, xy_diff_mean_product, x_diff_mean_squared, y_diff_mean_squared, balancing_line, ssm, ssr, sst, degrees_of_freedom, msr, mse, f_statistic, p_value, significance_value, validation, file_name='output_data_LR.xlsx', output_dir='../../output/', image_path='../../output/LR_plot.png'):
     file_path = os.path.join(output_dir, file_name)
     error_values = y_values - balancing_line
     ssr_values = error_values ** 2
