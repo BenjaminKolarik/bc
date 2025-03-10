@@ -204,6 +204,9 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
 
 
 def boxplot(values_column, priemer, image_path='../../output/ANOVA_plot.png'):
+
+    if not os.path.exists('../../output/'):
+        os.makedirs('../../output/')
     data = [list(map(float, row.split(','))) for row in values_column]
 
     plt.figure(figsize=(10, 6))

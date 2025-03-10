@@ -6,7 +6,7 @@ from scipy.stats import f
 
 def data_load():
 
-    data = pd.read_excel("../input/mtcars/LR.xlsx")
+    data = pd.read_excel("../../input/mtcars/LR.xlsx")
     LR_data = data[['y', 'x']]
     LR_array = LR_data.to_numpy()
     sum_values = LR_array[-1, :]
@@ -80,7 +80,7 @@ def validation_F_stat(MSM, MSE, df):
         verification = False
     return verification, F
 
-def write_data_to_excel(y, x, x_y, y_2, x_2, x_x_avg, y_y_avg, xx_yy, x_x_avg2, y_y_avg2, balancing_line, SSM, SSR, SST, df_values, MSA, MSE, F, file_name = 'output_data_LR.xlsx', output_dir = '../output/'):
+def write_data_to_excel(y, x, x_y, y_2, x_2, x_x_avg, y_y_avg, xx_yy, x_x_avg2, y_y_avg2, balancing_line, SSM, SSR, SST, df_values, MSA, MSE, F, file_name = 'output_data_LR.xlsx', output_dir = '../../output/'):
 
     file_path = os.path.join(output_dir, file_name)
     error_values = y - balancing_line

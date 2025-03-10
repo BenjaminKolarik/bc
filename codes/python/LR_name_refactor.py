@@ -180,6 +180,8 @@ def write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_
     print(f"Data and image have been written to {file_path}")
     
 def plot_regression_line(x_values, y_values, b0, b1, image_path='../../output/LR_plot.png'):
+    if not os.path.exists('../../output'):
+        os.makedirs('../../output')
     regression_line = b0 + b1 * x_values
     
     plt.figure(figsize=(10, 6))
