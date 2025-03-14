@@ -17,8 +17,7 @@ y = array[:, 0]
 
 model = LinearRegression()
 model.fit(x, y)
-
-print(array)
 print(f"Slope: {model.coef_[0]:.2f}")
 print(f"Intercept: {model.intercept_:.2f}")
 
+import matplotlib
