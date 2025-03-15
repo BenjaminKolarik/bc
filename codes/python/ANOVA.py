@@ -8,6 +8,7 @@ from openpyxl.styles import NamedStyle, Alignment
 from openpyxl.drawing.image import Image
 from scipy.stats import f
 
+from codes.python.execution_timer import measure_execution_time, timed_input
 
 
 def without_nan(array):
@@ -30,7 +31,7 @@ def without_nan(array):
 
 def priemer_and_priemer_c(count, suma):
 
-    priemer = [suma[i] / pocty[i] for i in range(len(count))]
+    priemer = [suma[i] / count[i] for i in range(len(count))]
     #toto asi treba zmenit :D, resp. zmenit zapis do excelu, lebo to je matuce
     priemer_c = float(sum(suma) / sum(count))
 
@@ -95,15 +96,16 @@ def F_stat(SSA, SSE, count, sum_bez_nan):
 
 def validate_f_statistic(degrees_of_freedom, f_statistic):
 
-    significance_level = float(input("Zadajte hodnotu hladiny významnosti (napr. 0.95): "))
+    user_input, wait_time = timed_input("Zadajte hodnotu hladiny význmnosti (napr 0.95): ")
+    significance_level = float(user_input)
     p_value = f.sf(f_statistic, degrees_of_freedom[0], degrees_of_freedom[1])
     is_valid = f_statistic > f.ppf(significance_level, degrees_of_freedom[0], degrees_of_freedom[1]) and p_value < significance_level
     print(p_value, is_valid, significance_level)
-    return is_valid, f_statistic, p_value, significance_level
+    return is_valid, f_statistic, p_value, significance_level, wait_time
 
 #prepisat cely zapis do excelu, toto je bs
 def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, ssa_value, ssa_values, sse_value, sse_values, sst_value, sst_values,
-                                   df_values, MSA, MSE, F, p_value, significance_value, file_name='output_data.xlsx', output_dir='../../output/', image_path='../../output/ANOVA_plot.png'):
+                                   df_values, MSA, MSE, F, p_value, significance_value, validation, file_name='output_data.xlsx', output_dir='../../output/', image_path='../../output/ANOVA_plot.png'):
 
     file_path = os.path.join(output_dir, file_name)
 
@@ -224,30 +226,50 @@ def boxplot(values_column, priemer, image_path='../../output/ANOVA_plot.png'):
     plt.savefig(image_path)
     plt.show()
 
-data = pd.read_excel("../../input/mtcars/tst.xlsx")
-
-P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
-P_array = P_data.to_numpy()
-
-bez_nan, suma, pocty, suma_bez_nan = without_nan(P_array)
-
-priemer, priemer_c = priemer_and_priemer_c(pocty, suma)
-sum_bez_nan = np.sum(~np.isnan(P_array))
-
-SSA_values, SSA_value = SSA(pocty, priemer, priemer_c)
-SSE_values, SSE_value = SSE(pocty, priemer, bez_nan)
-SST_values, SST_value = SST(pocty, bez_nan, priemer_c)
-df = df(pocty, sum_bez_nan)
-MSA, MSE, F = F_stat(SSA_value, SSE_value, pocty, sum_bez_nan)
-validation, f_statistic, p_value, significance_level = validate_f_statistic(df, F)
-
-values_column = [','.join(map(str, row)) for row in P_array]
-
-boxplot(values_column, priemer)
-write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, SSA_value, SSA_values, SSE_value, SSE_values, SST_value, SST_values, df, MSA, MSE, F, p_value, significance_level)
 
 
+def main():
+    wait_time = 0
+    data = pd.read_excel("../../input/mtcars/tst.xlsx")
 
+    P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
+    P_array = P_data.to_numpy()
+
+    bez_nan, suma, pocty, suma_bez_nan = without_nan(P_array)
+
+    priemer, priemer_c = priemer_and_priemer_c(pocty, suma)
+    sum_bez_nan = np.sum(~np.isnan(P_array))
+
+    SSA_values, SSA_value = SSA(pocty, priemer, priemer_c)
+    SSE_values, SSE_value = SSE(pocty, priemer, bez_nan)
+    SST_values, SST_value = SST(pocty, bez_nan, priemer_c)
+    df_values = df(pocty, sum_bez_nan)
+    MSA, MSE, F = F_stat(SSA_value, SSE_value, pocty, sum_bez_nan)
+    validation, f_statistic, p_value, significance_level, input_wait_time = validate_f_statistic(df_values, F)
+
+    wait_time += input_wait_time
+
+    values_column = [','.join(map(str, row)) for row in P_array]
+
+    boxplot(values_column, priemer)
+    write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c,
+                                   SSA_value, SSA_values, SSE_value, SSE_values,
+                                   SST_value, SST_values, df_values, MSA, MSE, F,
+                                   p_value, significance_level, validation)
+    return wait_time
+
+
+if __name__ == '__main__':
+    result = measure_execution_time(main)
+
+    if isinstance(result, tuple):
+        wait_time, execution_time = result
+        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"Waiting time: {wait_time:.6f} seconds")
+        print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
+    else:
+        execution_time = result
+        print(f"Total execution time: {execution_time:.6f} seconds")
 
 
 

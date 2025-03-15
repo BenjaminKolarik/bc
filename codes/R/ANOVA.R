@@ -1,3 +1,6 @@
+start_time <- Sys.time()
+setwd("codes/R")
+
 library(readxl)
 library(dplyr)
 library(tidyr)
@@ -5,7 +8,6 @@ library(ggplot2)
 
 # Read the data
 data <- read_excel("../../input/mtcars/tst.xlsx")
-
 data <- data %>%
   mutate(across(contains("Predaj"), as.numeric))
 
@@ -38,3 +40,7 @@ ggplot(data_long, aes(x = Dizajn.Obalu, y = Vynos)) +
        x = "Dizajn Obalu",
        y = "Vynos") +
   theme_minimal()
+
+end_time <- Sys.time()
+execution_time <- end_time - start_time
+execution_time

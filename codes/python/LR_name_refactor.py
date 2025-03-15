@@ -1,10 +1,13 @@
 import os
 import pandas as pd
 import numpy as np
-from openpyxl import load_workbook, Workbook
+from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
 from scipy.stats import f
 import matplotlib.pyplot as plt
+
+from codes.python.execution_timer import measure_execution_time, timed_input
+
 
 def load_data():
     data = pd.read_excel("../../input/mtcars/LR.xlsx")
@@ -72,10 +75,11 @@ def calculate_mean_squares(ssr, ssm, degrees_of_freedom):
 
 def validate_f_statistic(msm, mse, degrees_of_freedom):
     f_statistic = msm / mse
-    significance_level = float(input("Zadajte hodnotu hladiny významnosti (napr. 0.95): "))
+    user_input, wait_time = timed_input("Zadajte hodnotu hladiny významnosti (napr 0.95): ")
+    significance_level = float(wait_time)
     p_value = f.sf(f_statistic, degrees_of_freedom[0], degrees_of_freedom[1])
     is_valid = f_statistic > f.ppf(significance_level, degrees_of_freedom[0], degrees_of_freedom[1]) and p_value < significance_level
-    return is_valid, f_statistic, p_value, significance_level
+    return is_valid, f_statistic, p_value, significance_level, wait_time
 
 
 def write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_diff_mean, y_diff_mean, xy_diff_mean_product, x_diff_mean_squared, y_diff_mean_squared, balancing_line, ssm, ssr, sst, degrees_of_freedom, msr, mse, f_statistic, p_value, significance_value, validation, file_name='output_data_LR.xlsx', output_dir='../../output/', image_path='../../output/LR_plot.png'):
@@ -197,17 +201,36 @@ def plot_regression_line(x_values, y_values, b0, b1, image_path='../../output/LR
     plt.show()
     plt.close()
 
-data_set, sum_values = load_data()
-y_values = data_set[:, 0]
-x_values = data_set[:, 1]
-x_mean, y_mean, xy_product, xy_mean, y_squared, x_squared, sum_y, sum_x, sum_x_squared, sum_y_squared, sum_xy, x_diff_mean, y_diff_mean, y_diff_mean_squared, x_diff_mean_squared, y_diff_mean_squared_sum, x_diff_mean_squared_sum, num_samples, xy_diff_mean_product, xy_diff_mean_product_sum = perform_calculations(data_set, sum_values)
-covariance, scatter = calculate_covariance_and_scatter(xy_mean, x_mean, y_mean, x_squared)
-b0, b1 = calculate_regression_coefficients(covariance, scatter, y_mean, x_mean)
-balancing_line, sum_balancing_line = calculate_balancing_line(b0, b1, data_set[:, 1])
-calculate_squares_sum(data_set[:, 0], y_mean, balancing_line)
-ssm, ssr, sst = calculate_squares_sum(data_set[:, 0], y_mean, balancing_line)
-degrees_of_freedom = calculate_degrees_of_freedom(num_samples)
-msr, mse = calculate_mean_squares(ssr, ssm, degrees_of_freedom)
-validation, f_statistic, p_value, significance_level = validate_f_statistic(msr, mse, degrees_of_freedom)
-plot_regression_line(x_values, y_values, b0, b1)
-write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_diff_mean, y_diff_mean, xy_diff_mean_product, x_diff_mean_squared, y_diff_mean_squared, balancing_line, ssm, ssr, sst, degrees_of_freedom, msr, mse, f_statistic, p_value, significance_level, validation)
+def main():
+    wait_time = 0
+
+    data_set, sum_values = load_data()
+    y_values = data_set[:, 0]
+    x_values = data_set[:, 1]
+    x_mean, y_mean, xy_product, xy_mean, y_squared, x_squared, sum_y, sum_x, sum_x_squared, sum_y_squared, sum_xy, x_diff_mean, y_diff_mean, y_diff_mean_squared, x_diff_mean_squared, y_diff_mean_squared_sum, x_diff_mean_squared_sum, num_samples, xy_diff_mean_product, xy_diff_mean_product_sum = perform_calculations(data_set, sum_values)
+    covariance, scatter = calculate_covariance_and_scatter(xy_mean, x_mean, y_mean, x_squared)
+    b0, b1 = calculate_regression_coefficients(covariance, scatter, y_mean, x_mean)
+    balancing_line, sum_balancing_line = calculate_balancing_line(b0, b1, data_set[:, 1])
+    calculate_squares_sum(data_set[:, 0], y_mean, balancing_line)
+    ssm, ssr, sst = calculate_squares_sum(data_set[:, 0], y_mean, balancing_line)
+    degrees_of_freedom = calculate_degrees_of_freedom(num_samples)
+    msr, mse = calculate_mean_squares(ssr, ssm, degrees_of_freedom)
+    validation, f_statistic, p_value, significance_level, input_wait_time = validate_f_statistic(msr, mse, degrees_of_freedom)
+    plot_regression_line(x_values, y_values, b0, b1)
+    write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_diff_mean, y_diff_mean, xy_diff_mean_product, x_diff_mean_squared, y_diff_mean_squared, balancing_line, ssm, ssr, sst, degrees_of_freedom, msr, mse, f_statistic, p_value, significance_level, validation)
+
+    wait_time += input_wait_time
+    return wait_time
+
+
+if __name__ == '__main__':
+    result = measure_execution_time(main)
+
+    if isinstance(result, tuple):
+        wait_time, execution_time = result
+        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"Waiting time: {wait_time:.6f} seconds")
+        print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
+    else:
+        execution_time = result
+        print(f"Total execution time: {execution_time:.6f} seconds")

@@ -1,8 +1,11 @@
+start_time <- Sys.time()
+setwd("codes/R")
+
 library(readxl)
 library(ggplot2)
 
 # Load the data
-data <- read_excel("../../input/mtcars/LR.xlsx")
+data <- read_excel("input/mtcars/LR.xlsx")
 
 y <- data$y[1:10]
 x <- data$x[1:10]
@@ -18,3 +21,7 @@ ggplot(data_graph, aes(x = x, y = y)) +
        x = "x",
        y = "y") +
   theme_minimal()
+
+end_time <- Sys.time()
+execution_time <- end_time - start_time
+execution_time
