@@ -184,17 +184,22 @@ def write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_
     print(f"Data and image have been written to {file_path}")
     
 def plot_regression_line(x_values, y_values, b0, b1, image_path='../../output/LR_plot.png'):
+
     if not os.path.exists('../../output'):
         os.makedirs('../../output')
+
     regression_line = b0 + b1 * x_values
     
     plt.figure(figsize=(10, 6))
-    plt.scatter(x_values, y_values, color='blue', label='Data points')
-    plt.plot(x_values, regression_line, color='red', label='Regression line')
-    
+    plt.scatter(x_values, y_values, color='blue', label='Reziduá')
+    plt.plot(x_values, regression_line, color='red', label='Vyrovnávajúca priamka')
+
+    for i in range(len(x_values)):
+        plt.plot([x_values[i], x_values[i]], [y_values[i], regression_line[i]], color = "green", linestyle = 'dashed')
+
     plt.xlabel('X values')
     plt.ylabel('Y values')
-    plt.title('Regression line and Data Points')
+    plt.title('Vyrovnávajúca priamka OLS')
     plt.legend()
     plt.savefig(image_path)
     

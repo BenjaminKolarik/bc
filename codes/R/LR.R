@@ -1,10 +1,9 @@
 start_time <- Sys.time()
-setwd("codes/R")
+#setwd("codes/R")
 
 library(readxl)
 library(ggplot2)
 
-# Load the data
 data <- read_excel("input/mtcars/LR.xlsx")
 
 y <- data$y[1:10]

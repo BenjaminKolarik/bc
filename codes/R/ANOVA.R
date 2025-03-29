@@ -1,36 +1,34 @@
 start_time <- Sys.time()
-setwd("codes/R")
+#setwd("codes/R")
 
 library(readxl)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-# Read the data
+#treba zmenit na cestu na danom pocitaci
 data <- read_excel("../../input/mtcars/tst.xlsx")
 data <- data %>%
   mutate(across(contains("Predaj"), as.numeric))
 
 str(data)
 
-# Reshape the data to long format
 data_long <- data %>%
   pivot_longer(cols = starts_with("Predaj"),
                names_to = "Predajna",
                values_to = "Vynos") %>%
-  drop_na() %>%  # Added missing pipe operator
+  drop_na() %>%
   rename(Dizajn.Obalu = `Dizajn Obalu`)
 
 str(data_long)
-# Convert to factors
+
 data_long <- data_long %>%
   mutate(
     Predajna = as.factor(Predajna),
-    Dizajn.Obalu = as.factor(Dizajn.Obalu)  # Reference the column correctly
+    Dizajn.Obalu = as.factor(Dizajn.Obalu)
   )
 
-print(data_long)  # Changed show() to print() which is more commonly used in R
-# One-way ANOVA for Dizajn.Obalu effect
+print(data_long)
 anova_result <- aov(Vynos ~ Dizajn.Obalu, data = data_long)
 summary(anova_result)
 

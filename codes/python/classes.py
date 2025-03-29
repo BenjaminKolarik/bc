@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from openpyxl.styles import NamedStyle
 from openpyxl import load_workbook
 
 class DataProcessor:
@@ -120,28 +119,23 @@ class ExcelWriter:
         workbook.save(self.file_name)
         print(f"Data has been written to {self.file_name}")
 
-# Usage
 
 data = pd.read_excel("../input/mtcars/tst_x.xlsx")
 P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
 P_array = P_data.to_numpy()
 
-# Process data
 processor = DataProcessor(P_array)
 processor.process_data()
 priemer, priemer_c = processor.get_priemer_and_priemer_c()
 
-# Calculate ANOVA components
 anova_calc = AnovaCalculator(processor.pocty, priemer, priemer_c, processor.bez_nan)
 SSA_values, SSA_value = anova_calc.calculate_SSA()
 SSE_values, SSE_value = anova_calc.calculate_SSE()
 SST_values, SST_value = anova_calc.calculate_SST()
 
-# Calculate statistics
 df_values = Statistics.calculate_df(processor.pocty, processor.sum_bez_nan)
 MSA, MSE, F = Statistics.calculate_F_stat(SSA_value, SSE_value, processor.pocty, processor.sum_bez_nan)
 
-# Prepare DataFrames for Excel
 values_column = [','.join(map(str, row)) for row in P_array]
 
 df1 = pd.DataFrame({
@@ -164,6 +158,5 @@ df2 = pd.DataFrame({
     'F_stat': ["F = {:.2f}".format(F), float('nan'), float('nan')]
 })
 
-# Write to Excel
 writer = ExcelWriter(df1, df2)
 writer.write_to_excel()
