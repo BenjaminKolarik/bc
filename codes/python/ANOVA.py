@@ -230,7 +230,7 @@ def boxplot(values_column, priemer, image_path='../../output/ANOVA_plot.png'):
 
 def main():
     wait_time = 0
-    data = pd.read_excel("../../input/mtcars/tst.xlsx")
+    data = pd.read_excel("../../input/develop_test/tst.xlsx")
 
     P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
     P_array = P_data.to_numpy()

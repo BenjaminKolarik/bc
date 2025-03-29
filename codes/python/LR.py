@@ -6,7 +6,7 @@ from scipy.stats import f
 
 def data_load():
 
-    data = pd.read_excel("../../input/mtcars/LR.xlsx")
+    data = pd.read_excel("../../input/develop_test/LR.xlsx")
     LR_data = data[['y', 'x']]
     LR_array = LR_data.to_numpy()
     sum_values = LR_array[-1, :]

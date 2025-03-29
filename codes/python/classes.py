@@ -120,7 +120,7 @@ class ExcelWriter:
         print(f"Data has been written to {self.file_name}")
 
 
-data = pd.read_excel("../input/mtcars/tst_x.xlsx")
+data = pd.read_excel("../input/develop_test/tst_x.xlsx")
 P_data = data[['Predajňa 1', 'Predajňa 2', 'Predajňa 3']]
 P_array = P_data.to_numpy()
 

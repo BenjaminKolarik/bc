@@ -1,6 +1,6 @@
 import pandas as pd
 #načítanie a uloženie dát z/do excelu
-df = pd.read_excel("../../input/mtcars/test.xlsx") #Načítanie dát z excelu
+df = pd.read_excel("../../input/develop_test/test.xlsx") #Načítanie dát z excelu
 df.to_excel("../../output/function_showcase.xlsx", index=False) #Uloženie dát do excelu
 
 #Základné operácie s DataFrame
