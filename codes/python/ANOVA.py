@@ -105,7 +105,7 @@ def validate_f_statistic(degrees_of_freedom, f_statistic):
 
 #prepisat cely zapis do excelu, toto je bs
 def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, ssa_value, ssa_values, sse_value, sse_values, sst_value, sst_values,
-                                   df_values, MSA, MSE, F, p_value, significance_value, validation, file_name='output_data.xlsx', output_dir='../../output/', image_path='../../output/ANOVA_plot.png'):
+                                   df_values, MSA, MSE, F, p_value, significance_value, validation, file_name='output_data.xlsx', output_dir='../../output/ANOVA/excel', image_path='../../output/ANOVA/graphs/ANOVA_plot.png'):
 
     file_path = os.path.join(output_dir, file_name)
 
@@ -205,10 +205,10 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
     print(f"Data and image have been written to {file_path}")
 
 
-def boxplot(values_column, priemer, image_path='../../output/ANOVA_plot.png'):
+def boxplot(values_column, priemer, image_path='../../output/ANOVA/graphs/ANOVA_plot.png'):
 
-    if not os.path.exists('../../output/'):
-        os.makedirs('../../output/')
+    if not os.path.exists('../../output/ANOVA/graphs/'):
+        os.makedirs('../../output/ANOVA/graphs/')
     data = [list(map(float, row.split(','))) for row in values_column]
 
     plt.figure(figsize=(10, 6))
