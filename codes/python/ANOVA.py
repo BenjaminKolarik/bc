@@ -4,11 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from openpyxl import load_workbook
-from openpyxl.styles import NamedStyle, Alignment
+from openpyxl.styles import  Alignment
 from openpyxl.drawing.image import Image
 from scipy.stats import f
 
-from codes.python.execution_timer import measure_execution_time, timed_input
+from codes.python.execution_timer import measure_execution_time, timed_input, append_execution_time
 
 
 def without_nan(array):
@@ -107,6 +107,8 @@ def validate_f_statistic(degrees_of_freedom, f_statistic):
 def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_c, ssa_value, ssa_values, sse_value, sse_values, sst_value, sst_values,
                                    df_values, MSA, MSE, F, p_value, significance_value, validation, file_name='output_data.xlsx', output_dir='../../output/ANOVA/excel', image_path='../../output/ANOVA/graphs/ANOVA_plot.png'):
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     file_path = os.path.join(output_dir, file_name)
 
     max_length = max(len(priemer) + 1, len(ssa_values) + 1, len(sse_values) + 1, len(values_column))
@@ -173,7 +175,6 @@ def write_data_to_excel_two_sheets(values_column, suma, pocty, priemer, priemer_
     for cell in sheet1['B']:
         cell.alignment = Alignment(horizontal='center')
 
-    number_format = NamedStyle
     for sheet in [sheet1, sheet2]:
         for col in sheet.columns:
             max_length = 0
@@ -267,10 +268,14 @@ if __name__ == '__main__':
         print(f"Total execution time: {execution_time:.6f} seconds")
         print(f"Waiting time: {wait_time:.6f} seconds")
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
+        append_execution_time(execution_time - wait_time, method="ANOVA - own",
+                              computer_name="Windows Ryzen 9 5900x 32GB")
+
     else:
         execution_time = result
         print(f"Total execution time: {execution_time:.6f} seconds")
-
+        append_execution_time(execution_time, method="ANOVA - own",
+                              computer_name="Windows Ryzen 9 5900x 32GB")
 
 
 

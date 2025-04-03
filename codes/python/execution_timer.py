@@ -1,4 +1,8 @@
 import time
+import pandas as pd
+import os
+import datetime
+from pathlib import Path
 
 def measure_execution_time(func, *args, **kwargs):
     """
@@ -34,6 +38,55 @@ def timed_input(prompt=""):
     user_input = input(prompt)
     resume_time = time.time()
     return user_input, resume_time - pause_time
+
+
+def append_execution_time(execution_time, method, computer_name, excel_file="../../output/execution_times/execution_times.xlsx"):
+    Path(os.path.dirname(excel_file)).mkdir(parents=True, exist_ok=True)
+
+    new_data = pd.DataFrame({
+        "Method": [method],
+        "Computer": [computer_name],
+        "Execution_time": [float(execution_time)],
+        "Timestamp": [datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+        "Language": ["Python"]
+    })
+
+    try:
+        # Handle existing file
+        if os.path.exists(excel_file):
+            try:
+                # Read all existing sheets
+                with pd.ExcelFile(excel_file) as xls:
+                    sheet_dict = {sheet: pd.read_excel(excel_file, sheet_name=sheet)
+                                  for sheet in xls.sheet_names}
+
+                # Update or add the method sheet
+                if method in sheet_dict:
+                    sheet_dict[method] = pd.concat([sheet_dict[method], new_data], ignore_index=True)
+                else:
+                    sheet_dict[method] = new_data
+
+                # Write everything back to file
+                with pd.ExcelWriter(excel_file, engine="openpyxl") as writer:
+                    for sheet_name, df in sheet_dict.items():
+                        df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+            except Exception as e:
+                print(f"Error reading existing Excel file: {str(e)}")
+                print("Creating new Excel file instead...")
+                with pd.ExcelWriter(excel_file, engine="openpyxl") as writer:
+                    new_data.to_excel(writer, sheet_name=method, index=False)
+        else:
+            # Create new file
+            with pd.ExcelWriter(excel_file, engine="openpyxl") as writer:
+                new_data.to_excel(writer, sheet_name=method, index=False)
+
+        print(f"Execution time {execution_time:.6f} seconds added to {excel_file} in sheet '{method}'")
+
+    except Exception as e:
+        print(f"Error appending execution time: {str(e)}")
+        print(f"Execution time was {execution_time:.6f} seconds for method {method}")
+
 
 class ExecutionTimer:
     """

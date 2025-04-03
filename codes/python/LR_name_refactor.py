@@ -6,11 +6,11 @@ from openpyxl.drawing.image import Image
 from scipy.stats import f
 import matplotlib.pyplot as plt
 
-from codes.python.execution_timer import measure_execution_time, timed_input
+from codes.python.execution_timer import measure_execution_time, timed_input, append_execution_time
 
 
-def load_data():
-    data = pd.read_excel("../../input/develop_test/LR.xlsx")
+def load_data(file_path):
+    data = pd.read_excel(file_path)
     lr_data = data[['y', 'x']]
     lr_array = lr_data.to_numpy()
     sum_values = lr_array[-1, :]
@@ -83,7 +83,11 @@ def validate_f_statistic(msm, mse, degrees_of_freedom):
 
 
 def write_data_to_excel(y_values, x_values, xy_product, y_squared, x_squared, x_diff_mean, y_diff_mean, xy_diff_mean_product, x_diff_mean_squared, y_diff_mean_squared, balancing_line, ssm, ssr, sst, degrees_of_freedom, msr, mse, f_statistic, p_value, significance_value, validation, file_name='output_data_LR.xlsx', output_dir='../../output/LR/excel', image_path='../../output/LR/graphs/LR_plot.png'):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     file_path = os.path.join(output_dir, file_name)
+
     error_values = y_values - balancing_line
     ssr_values = error_values ** 2
     df1 = pd.DataFrame({
@@ -209,7 +213,7 @@ def plot_regression_line(x_values, y_values, b0, b1, image_path='../../output/LR
 def main():
     wait_time = 0
 
-    data_set, sum_values = load_data()
+    data_set, sum_values = load_data("../../input/develop_test/LR.xlsx")
     y_values = data_set[:, 0]
     x_values = data_set[:, 1]
     x_mean, y_mean, xy_product, xy_mean, y_squared, x_squared, sum_y, sum_x, sum_x_squared, sum_y_squared, sum_xy, x_diff_mean, y_diff_mean, y_diff_mean_squared, x_diff_mean_squared, y_diff_mean_squared_sum, x_diff_mean_squared_sum, num_samples, xy_diff_mean_product, xy_diff_mean_product_sum = perform_calculations(data_set, sum_values)
@@ -236,6 +240,8 @@ if __name__ == '__main__':
         print(f"Total execution time: {execution_time:.6f} seconds")
         print(f"Waiting time: {wait_time:.6f} seconds")
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
+        append_execution_time(execution_time - wait_time, method = "Linear Regression", computer_name=  "Windows Ryzen 9 5900x 32GB")
     else:
         execution_time = result
         print(f"Total execution time: {execution_time:.6f} seconds")
+        append_execution_time(execution_time, method = "Linear Regression", computer_name=  "Windows Ryzen 9 5900x 32GB")
