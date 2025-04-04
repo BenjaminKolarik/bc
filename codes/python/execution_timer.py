@@ -40,7 +40,7 @@ def timed_input(prompt=""):
     return user_input, resume_time - pause_time
 
 
-def append_execution_time(execution_time, method, computer_name, excel_file="../../output/execution_times/execution_times.xlsx"):
+def append_execution_time(execution_time, method, computer_name, excel_file="../../output/execution_times/execution_times_python.xlsx"):
     Path(os.path.dirname(excel_file)).mkdir(parents=True, exist_ok=True)
 
     new_data = pd.DataFrame({
@@ -52,21 +52,17 @@ def append_execution_time(execution_time, method, computer_name, excel_file="../
     })
 
     try:
-        # Handle existing file
         if os.path.exists(excel_file):
             try:
-                # Read all existing sheets
                 with pd.ExcelFile(excel_file) as xls:
                     sheet_dict = {sheet: pd.read_excel(excel_file, sheet_name=sheet)
                                   for sheet in xls.sheet_names}
 
-                # Update or add the method sheet
                 if method in sheet_dict:
                     sheet_dict[method] = pd.concat([sheet_dict[method], new_data], ignore_index=True)
                 else:
                     sheet_dict[method] = new_data
 
-                # Write everything back to file
                 with pd.ExcelWriter(excel_file, engine="openpyxl") as writer:
                     for sheet_name, df in sheet_dict.items():
                         df.to_excel(writer, sheet_name=sheet_name, index=False)

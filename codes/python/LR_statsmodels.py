@@ -1,6 +1,7 @@
 import statsmodels.api as sm
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from codes.python.execution_timer import measure_execution_time
 
 def data_load():
@@ -35,7 +36,6 @@ def main():
     print(y_pred)
     print(x)
     print(model.summary())
-    #sns.residplot(x=array[:, 1], y=y, lowess=True, color="g")
     graph(y, array[:, 1], model)
     plt.show()
 
