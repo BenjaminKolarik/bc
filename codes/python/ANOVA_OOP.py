@@ -2,9 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-from scipy.stats import f
+import scipy.stats as stats
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
+from statsmodels.formula.api import ols
 
 from codes.python.execution_timer import measure_execution_time, append_execution_time
 
@@ -90,13 +91,10 @@ class ANOVA:
         return groups, group_means, grand_mean, n_total
 
     def _calculate_sum_of_squares(self, groups, group_means, grand_mean):
-        # Sum of squares between groups (SSA)
         SSA = sum(len(group_values) * (group_means[group_name] - grand_mean)**2
                  for group_name, group_values in groups.items())
 
-        # Sum of squares within groups (SSE)
         SSE = sum(sum((value - group_means[group_name]) ** 2 for value in groups[group_name]) for group_name in groups)
-        # Total sum of squares (SST)
         SST = SSA + SSE
 
         return SSA, SSE, SST
@@ -127,7 +125,7 @@ class ANOVA:
         return MSA/MSE
 
     def _calculate_p_value(self, f_statistic, df_between, df_within):
-        p_value = 1 - f.cdf(f_statistic, df_between, df_within)
+        p_value = 1 - stats.f.cdf(f_statistic, df_between, df_within)
         return p_value
 
     def get_results_summary(self):
@@ -180,6 +178,25 @@ class ANOVAVisualizer:
         plt.savefig(os.path.join(self.output_dir, 'anova_barplot.png'))
 
 
+class ANOVATester:
+    def __init__(self, data, group_column, value_column):
+        self.data = data
+        self.group_column = group_column
+        self.value_column = value_column
+
+    def test_assumptions(self):
+        model = ols(f'{self.value_column} ~ C({self.group_column})', data=self.data).fit()
+        residuals = model.resid
+
+        shapiro_test = stats.shapiro(residuals)
+        print(f"\nShapiro-Wilk test for normality: p-value = {shapiro_test.pvalue:.4f}")
+
+        # Homogeneity of variances test (Levene's test)
+        groups = [self.data[self.data[self.group_column] == group][self.value_column] for group in self.data[self.group_column].unique()]
+        levene_test = stats.levene(*groups)
+        print(f"Levene's test for homogeneity of variances: p-value = {levene_test.pvalue:.4f}")
+
+
 class ANOVAExporter:
     def __init__(self, results, output_dir='../../output/ANOVA/ANOVA_OOP/excel', file_name='anova_results.xlsx'):
         self.results = results
@@ -196,7 +213,6 @@ class ANOVAExporter:
 
         file_path = os.path.join(self.output_dir, self.file_name)
 
-        # Create summary dataframe
         summary_df = pd.DataFrame({
             "Zdroj variability premennej Y": ["Faktor", "Náhoda", "Spolu"],
             "Suma štvorcov odchýlok SS": [self.results['SSA'], self.results['SSE'], self.results['SST']],
@@ -209,14 +225,12 @@ class ANOVAExporter:
             "ŠV modelu": ["Áno" if self.results['is_significant'] else "Nie", None, None]
         })
 
-        # Create group means dataframe
         group_means_df = pd.DataFrame({
             "Group": list(self.results['group_means'].keys()),
             "Mean": list(self.results['group_means'].values()),
             "Count": [len(self.results['groups'][group]) for group in self.results['groups']],
         })
 
-        # Write to Excel
         with pd.ExcelWriter(file_path) as writer:
             summary_df.to_excel(writer, sheet_name='ANOVA Summary', index=False)
             group_means_df.to_excel(writer, sheet_name='Group Statistics', index=False)
@@ -227,7 +241,6 @@ class ANOVAExporter:
     def _format_excel_file(self, file_path):
         workbook = load_workbook(file_path)
 
-        # Format cells
         for sheet_name in workbook.sheetnames:
             sheet = workbook[sheet_name]
             for col in sheet.columns:
@@ -248,10 +261,8 @@ class ANOVAExporter:
                 adjusted_width = (max_length + 2) * 1.2
                 sheet.column_dimensions[column].width = adjusted_width
 
-        # Add images if available
         image_paths = [
             os.path.join('../../output/ANOVA/ANOVA_OOP/graphs', 'anova_boxplot.png'),
-            os.path.join('../../output/ANOVA/ANOVA_OOP/graphs', 'anova_violinplot.png'),
             os.path.join('../../output/ANOVA/ANOVA_OOP/graphs', 'anova_barplot.png')
         ]
 
@@ -269,9 +280,7 @@ class ANOVAExporter:
 
 
 def main():
-    wait_time = 0
 
-    # Load data
     data_loader = DataLoader()
     file_path = '../../input/ANOVA/ANOVA_medium.xlsx'
     data = data_loader.load_data(file_path)
@@ -279,17 +288,15 @@ def main():
 
     if data is None:
         print("Failed to load or preprocess data")
-        return wait_time
+        return
 
-    # Set column names
     group_col = "group"
     value_col = "value"
 
-    # Check if columns exist
     if group_col not in data.columns or value_col not in data.columns:
         print(f"Columns '{group_col}' and/or '{value_col}' not found in the data")
         print(f"Available columns: {', '.join(data.columns)}")
-        return wait_time
+        return
 
     try:
         anova = ANOVA(data, group_col, value_col)
@@ -297,13 +304,16 @@ def main():
 
         if results is None:
             print("ANOVA analysis failed")
-            return wait_time
+            return
 
         visualizer = ANOVAVisualizer(data, group_col, value_col)
         visualizer.create_plots()
 
         exporter = ANOVAExporter(results)
         exporter.export_to_excel()
+
+        tester = ANOVATester(data, group_col, value_col)
+        tester.test_assumptions()
 
         summary = anova.get_results_summary()
         print("\nANOVA Results:")
@@ -316,7 +326,7 @@ def main():
         import traceback
         traceback.print_exc()
 
-    return wait_time
+    return
 
 
 if __name__ == "__main__":
@@ -324,7 +334,7 @@ if __name__ == "__main__":
 
     if isinstance(result, tuple):
         wait_time, execution_time = result
-        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"\nTotal execution time: {execution_time:.6f} seconds")
         print(f"Waiting time: {wait_time:.6f} seconds")
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
 
@@ -335,7 +345,7 @@ if __name__ == "__main__":
         )
     else:
         execution_time = result
-        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"\nTotal execution time: {execution_time:.6f} seconds")
 
         append_execution_time(
             execution_time,

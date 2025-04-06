@@ -3,9 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import statsmodels.api as sm
 from scipy import stats
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
+from scipy.stats import shapiro
+from statsmodels.stats.diagnostic import het_breuschpagan
+from statsmodels.stats.stattools import durbin_watson
 
 from codes.python.execution_timer import measure_execution_time, append_execution_time
 
@@ -72,7 +76,7 @@ class LinearRegression:
                 "adjusted_r_squared": adjusted_r_squared,
                 "rmse": rmse,
                 "mae": mean_absolute_error,
-                "equation": f"y = {self.slope:.4f}x + {self.intercept:.4f}",
+                "equation": f"y = {self.intercept:.4f} + {self.slope:.4f}x",
                 "x_values": self.x_values,
                 "y_values": self.y_values,
                 "predictions": self.predictions,
@@ -152,7 +156,7 @@ class RegressionVisualizer:
 
     def _create_qq_plot(self):
         plt.figure(figsize=(10, 6))
-        stats.probplot(self.regression.residuals, plot=plt)
+        sm.qqplot(self.regression.residuals, line='s', ax=plt.gca())
         plt.title('Q-Q Plot of Residuals')
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, 'qq_plot.png'))
@@ -165,6 +169,26 @@ class RegressionVisualizer:
         plt.ylabel('Frequency')
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, 'residual_histogram.png'))
+
+class RegressionTester:
+    def __init__(self, regression):
+        self.regression = regression
+        self.residuals = regression.residuals
+        self.x_values = regression.x_values
+
+    def test_assumptions(self):
+
+        # Homoscedasticity test (Breusch-Pagan)
+        bp_test = het_breuschpagan(self.residuals, sm.add_constant(self.x_values))
+        print(f"\nBreusch-Pagan test: p-value = {bp_test[1]:.4f}")
+
+        # Normality test (Shapiro-Wilk)
+        shapiro_test = shapiro(self.residuals)
+        print(f"Shapiro-Wilk test: p-value = {shapiro_test.pvalue:.4f}")
+
+        # Independence test (Durbin-Watson)
+        dw_test = durbin_watson(self.residuals)
+        print(f"Durbin-Watson test: statistic = {dw_test:.4f}")
 
 
 class RegressionExporter:
@@ -252,7 +276,6 @@ class RegressionExporter:
 
 
 def main():
-    wait_time = 0
 
     data_loader = DataLoader()
     file_path = '../../input/LR/LR_1000.xlsx'
@@ -285,6 +308,9 @@ def main():
         exporter = RegressionExporter(lr)
         exporter.export_to_excel()
 
+        tester = RegressionTester(lr)
+        tester.test_assumptions()
+
         summary = lr.get_results_summary()
         print("\nLinear Regression Results:")
         print(f"Equation: {summary['Equation']}")
@@ -299,7 +325,7 @@ def main():
         import traceback
         traceback.print_exc()
 
-    return wait_time
+    return
 
 
 if __name__ == "__main__":

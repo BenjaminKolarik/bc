@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
-from scipy.stats import f
+import scipy.stats as stats
+from statsmodels.formula.api import ols
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 from codes.python.execution_timer import measure_execution_time, timed_input, append_execution_time
 
@@ -61,7 +63,7 @@ def calculate_f_statistic(MSA, MSE):
 
 def calculate_p_value(f_statistic, df_between, df_within):
 
-    return 1 - f.cdf(f_statistic, df_between, df_within)
+    return 1 - stats.f.cdf(f_statistic, df_between, df_within)
 
 def validate_f_statistic(f_statistic, p_value, significance_value = None):
     if significance_value is None:
@@ -116,19 +118,22 @@ def plot_anova_results(data_frame, group_col, value_col, output_dir = '../../out
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'anova_boxplot.png'))
 
-    #violinplot
-    plt.figure(figsize=(10, 6))
-    sns.violinplot(x = group_col, y = value_col, data = data_frame)
-    plt.title('Violin plot of ANOVA Groups')
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'anova_violinplot.png'))
-
     #barplot
     plt.figure(figsize=(10, 6))
     sns.barplot(x = group_col, y = value_col, data = data_frame)
     plt.title('Barplot of ANOVA Groups')
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'anova_barplot.png'))
+
+    # #Residual plot
+    # residuals = data_frame[value_col] - data_frame.groupby(group_col)[value_col].transform('mean')
+    # plt.figure(figsize=(10, 6))
+    # sns.residplot(x=group_col, y=residuals, data = data_frame, lowess=True, line_kws={'color': 'red', 'lw': 1})
+    # plt.xlabel(group_col)
+    # plt.ylabel('Residuals')
+    # plt.title('Residual Plot')
+    # plt.tight_layout()
+    # plt.savefig(os.path.join(output_dir, 'anova_residual_plot.png'))
 
     plt.close('all')
 
@@ -184,7 +189,7 @@ def export_anova_results_to_excel(results, output_dir = '../../output/ANOVA/ANOV
 
     image_paths = [
         os.path.join('../../output/ANOVA/ANOVA_base/graphs', 'anova_boxplot.png'),
-        os.path.join('../../output/ANOVA/ANOVA_base/graphs', 'anova_violinplot.png'),
+        #os.path.join('../../output/ANOVA/ANOVA_base/graphs', 'anova_residual_plot.png'),
         os.path.join('../../output/ANOVA/ANOVA_base/graphs', 'anova_barplot.png')
     ]
 
@@ -199,7 +204,23 @@ def export_anova_results_to_excel(results, output_dir = '../../output/ANOVA/ANOV
                 row_pos += 20
 
     workbook.save(file_path)
-    print(f"Data and image have been written to {file_path}")
+    print(f"\nData and image have been written to {file_path}")
+
+def test_assumptions(data_frame, group_col, value_col):
+    model = ols(f'{value_col} ~ C({group_col})', data=data_frame).fit()
+    residuals = model.resid
+
+    shapiro_test = stats.shapiro(residuals)
+    print(f"\nShapiro-Wilk test for normality: p-value = {shapiro_test.pvalue:.4f}")
+
+    # Homogeneity of variances test (Levene's test)
+    groups = [data_frame[data_frame[group_col] == group][value_col] for group in data_frame[group_col].unique()]
+    levene_test = stats.levene(*groups)
+    print(f"Levene's test for homogeneity of variances: p-value = {levene_test.pvalue:.4f}")
+
+    tukey = pairwise_tukeyhsd(data_frame['value'], data_frame['group'], alpha = 0.05)
+    print("\nPost-hoc analysis (Tukey's HSD):")
+    print(tukey)
 
 
 def main():
@@ -214,12 +235,16 @@ def main():
         results, anova_wait_time = perform_anova(data, group_col, value_col)
         wait_time += anova_wait_time
 
-        plot_anova_results(data, group_col, value_col)
-        export_anova_results_to_excel(results)
 
-        print(f"F-statistic: {results['f_statistic']:.4f}")
+
+        print(f"\nF-statistic: {results['f_statistic']:.4f}")
         print(f"P-value: {results['p_value']:.4f}")
         print(f"Significant: {'Yes' if results['is_significant'] else 'No'}")
+
+        test_assumptions(data, group_col, value_col)
+
+        plot_anova_results(data, group_col, value_col)
+        export_anova_results_to_excel(results)
 
     except Exception as e:
         print(f"An error occurred: {e}")

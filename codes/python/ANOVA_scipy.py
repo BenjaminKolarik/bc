@@ -1,10 +1,9 @@
 import pandas as pd
-import numpy as np
 from scipy import stats
-import statsmodels.api as sm
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+from statsmodels.formula.api import ols
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 from codes.python.execution_timer import measure_execution_time, append_execution_time
@@ -39,30 +38,21 @@ def graph(data):
 
     return group_stats
 
-def check_assumptions(data, model):
+def test_assumptions(data_frame, group_col, value_col):
+    model = ols(f'{value_col} ~ C({group_col})', data=data_frame).fit()
     residuals = model.resid
-    _, p_norm = stats.shapiro(residuals)
-    print(f"Shapiro-Wilk test for normality: p-value = {p_norm:.4f}")
-    if p_norm > 0.05:
-        print("Residuals are normally distributed.")
-    else:
-        print("Residuals are not normally distributed.")
 
-    plt.figure(figsize=(10, 6))
-    sm.qqplot(residuals, line='s')
-    plt.title('Q-Q Plot of Residuals')
-    plt.savefig('../../output/ANOVA/ANOVA_scipy/qqplot.png')
-    plt.close()
+    shapiro_test = stats.shapiro(residuals)
+    print(f"\nShapiro-Wilk test for normality: p-value = {shapiro_test.pvalue:.4f}")
 
-    groups = [data[data['group'] == group]['value'] for group in data['group'].unique()]
-    _, p_levene = stats.levene(*groups)
-    print(f"Levene's test for homogeneity of variances: p-value = {p_levene:.4f}")
-    if p_levene > 0.05:
-        print("Variances are homogeneous.")
-    else:
-        print("Variances are not homogeneous.")
+    # Homogeneity of variances test (Levene's test)
+    groups = [data_frame[data_frame[group_col] == group][value_col] for group in data_frame[group_col].unique()]
+    levene_test = stats.levene(*groups)
+    print(f"Levene's test for homogeneity of variances: p-value = {levene_test.pvalue:.4f}")
+
 
 def post_hoc_analysis(data):
+
     tukey = pairwise_tukeyhsd(data['value'], data['group'], alpha = 0.05)
     print("\nPost-hoc analysis (Tukey's HSD):")
     print(tukey)
@@ -71,12 +61,13 @@ def main():
 
     os.makedirs("../../output/ANOVA/ANOVA_scipy", exist_ok=True)
     data = load_data("../../input/ANOVA/ANOVA_medium.xlsx")
-    model, anova_table = perform_anova(data)
+    f_stat, p_value = perform_anova(data)
     groups_stats = graph(data)
-    check_assumptions(data, model)
+    test_assumptions(data, "group", "value")
 
-    if anova_table.iloc[0, 4] < 0.05:
-        post_hoc_analysis(data)
+   # if p_value < 0.05:
+   #      print("Post-hoc analysis")
+   #      post_hoc_analysis(data)
 
 if __name__ == "__main__":
     result = measure_execution_time(main)

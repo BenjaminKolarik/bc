@@ -1,6 +1,6 @@
 # install_packages.R
 
-required_packages <- c("readxl", "dplyr", "tidyr", "ggplot2", "openxlsx")
+required_packages <- c("readxl", "dplyr", "tidyr", "ggplot2", "openxlsx", "car", "lmtest")
 
 # Function to check if a package is installed
 is_installed <- function(pkg) {

@@ -5,16 +5,7 @@ import datetime
 from pathlib import Path
 
 def measure_execution_time(func, *args, **kwargs):
-    """
-    Measures the execution time of a function while excluding time spent waiting for user input.
 
-    Args:
-        func: The function to measure
-        *args, **kwargs: Arguments to pass to the function
-
-    Returns:
-        tuple: (function result, execution time in seconds)
-    """
     start_time = time.time()
     result = func(*args, **kwargs)
     end_time = time.time()
@@ -25,22 +16,14 @@ def measure_execution_time(func, *args, **kwargs):
         return execution_time
 
 def timed_input(prompt=""):
-    """
-    Gets user input while excluding the waiting time from execution measurements.
 
-    Args:
-        prompt: Input prompt to display
-
-    Returns:
-        tuple: (user input, time spent waiting in seconds)
-    """
     pause_time = time.time()
     user_input = input(prompt)
     resume_time = time.time()
     return user_input, resume_time - pause_time
 
 
-def append_execution_time(execution_time, method, computer_name, excel_file="../../output/execution_times/execution_times_python.xlsx"):
+def append_execution_time(execution_time, method, computer_name, excel_file="../../output/execution_times/execution_times_python_medium.xlsx"):
     Path(os.path.dirname(excel_file)).mkdir(parents=True, exist_ok=True)
 
     new_data = pd.DataFrame({
@@ -85,10 +68,7 @@ def append_execution_time(execution_time, method, computer_name, excel_file="../
 
 
 class ExecutionTimer:
-    """
-    Class for tracking execution time across multiple code segments,
-    excluding time spent waiting for user input.
-    """
+
     def __init__(self):
         self.total_time = 0
         self.wait_time = 0

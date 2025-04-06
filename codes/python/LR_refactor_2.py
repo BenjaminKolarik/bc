@@ -2,10 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import statsmodels.api as sm
 import os
 from scipy import stats
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
+from scipy.stats import shapiro
+from statsmodels.stats.diagnostic import het_breuschpagan
+from statsmodels.stats.stattools import durbin_watson
 
 from codes.python.execution_timer import measure_execution_time, append_execution_time, timed_input
 
@@ -242,6 +246,25 @@ def perform_linear_regression(data, x_column, y_column):
         traceback.print_exc()
         return None, 0
 
+def test_assumptions(data, results):
+    x_values = data['x']
+    y_values = data['y']
+    y_pred = results['predictions']
+    residuals = results['residuals']
+
+    # Homoscedasticity test (Breusch-Pagan)
+    bp_test = het_breuschpagan(residuals, sm.add_constant(x_values))
+    print(f"\nBreusch-Pagan test: p-value = {bp_test[1]:.4f}")
+
+    # Normality test (Shapiro-Wilk)
+    shapiro_test = shapiro(residuals)
+    print(f"Shapiro-Wilk test: p-value = {shapiro_test.pvalue:.4f}")
+
+    # Independence test (Durbin-Watson)
+    dw_test = durbin_watson(residuals)
+    print(f"Durbin-Watson test: statistic = {dw_test:.4f}")
+
+
 def plot_regression_line(results, graph_dir):
 
     if not os.path.exists(graph_dir):
@@ -398,7 +421,7 @@ def export_results_to_excel(results, excel_dir, file_name='linear_regression_res
         df3.to_excel(writer, sheet_name='LR', index=False)
 
     format_excel_file(file_path, excel_dir.replace('excel', 'graphs'))
-    print(f"Data exported to {file_path}")
+    print(f"\nData exported to {file_path}")
 
 
 def format_excel_file(file_path, graph_dir):
@@ -476,10 +499,12 @@ def main():
             print("Linear regression failed")
             return wait_time
 
+        test_assumptions(data, results)
+        print_summary(results)
+
         plot_regression_line(results, '../../output/LR/LR_base/graphs')
         export_results_to_excel(results, '../../output/LR/LR_base/excel')
 
-        print_summary(results)
 
     except Exception as e:
         print(f"Error in main function: {e}")
@@ -494,7 +519,7 @@ if __name__ == "__main__":
 
     if isinstance(result, tuple):
         wait_time, execution_time = result
-        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"\nTotal execution time: {execution_time:.6f} seconds")
         print(f"Waiting time: {wait_time:.6f} seconds")
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
 
@@ -505,7 +530,7 @@ if __name__ == "__main__":
         )
     else:
         execution_time = result
-        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"\nTotal execution time: {execution_time:.6f} seconds")
 
         append_execution_time(
             execution_time,
