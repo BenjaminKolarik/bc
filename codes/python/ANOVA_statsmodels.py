@@ -10,29 +10,38 @@ import os
 from codes.python.execution_timer import measure_execution_time, append_execution_time
 
 
-def load_data(file_path):
-    data = pd.read_excel(file_path)
-    data_clean = data.dropna(subset=['value'])
-    return data_clean
-
-
 def perform_anova(data):
     model = ols('value ~ C(group)', data=data).fit()
-
     anova_table = sm.stats.anova_lm(model, typ=2)
     print("Statsmodels ANOVA results:")
     print(anova_table)
 
     return model, anova_table
 
+def load_data(file_path):
+    data = pd.read_excel(file_path)
+    data_clean = data.dropna(subset=['value'])
+    return data_clean
+
 
 def graph(data):
+
     plt.figure(figsize=(10, 6))
     sns.boxplot(x='group', y='value', data=data)
     plt.title('Boxplot of Values by Group')
     plt.xlabel('Groups')
     plt.ylabel('Values')
     plt.savefig('../../output/ANOVA/ANOVA_statsmodels/boxplot.png')
+    plt.close()
+
+    group_means = data.groupby('group')['value'].mean().reset_index()
+
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x='group', y='value', hue='group', data=group_means, palette='viridis')
+    plt.title('Barplot of Values by Group')
+    plt.xlabel('Groups')
+    plt.ylabel('Mean Values')
+    plt.savefig('../../output/ANOVA/ANOVA_statsmodels/barplot.png')
     plt.close()
 
     group_stats = data.groupby('group')['value'].agg(['mean', 'std', 'count']).reset_index()
@@ -71,7 +80,7 @@ def post_hoc_analysis(data):
 def main():
     os.makedirs("../../output/ANOVA/ANOVA_statsmodels", exist_ok=True)
 
-    data = load_data("../../input/ANOVA/ANOVA_small.xlsx")
+    data = load_data("../../input/ANOVA/ANOVA_medium.xlsx")
 
     model, anova_table = perform_anova(data)
 
@@ -79,9 +88,9 @@ def main():
 
     test_assumptions(data, "group", "value")
 
-    # if anova_table.loc['C(group)', 'PR(>F)'] < 0.05:
-    #     print("Post-hoc analysis")
-    #     post_hoc_analysis(data)
+    if anova_table.loc['C(group)', 'PR(>F)'] < 0.05:
+        print("Post-hoc analysis")
+        post_hoc_analysis(data)
 
     return
 

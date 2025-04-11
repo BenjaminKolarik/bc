@@ -152,7 +152,6 @@ class ANOVAVisualizer:
 
     def create_plots(self):
         self._create_boxplot()
-        self._create_violinplot()
         self._create_barplot()
         plt.close('all')
 
@@ -162,13 +161,6 @@ class ANOVAVisualizer:
         plt.title('Boxplot of ANOVA Groups')
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, 'anova_boxplot.png'))
-
-    def _create_violinplot(self):
-        plt.figure(figsize=(10, 6))
-        sns.violinplot(x=self.group_column, y=self.value_column, data=self.data)
-        plt.title('Violin plot of ANOVA Groups')
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'anova_violinplot.png'))
 
     def _create_barplot(self):
         plt.figure(figsize=(10, 6))

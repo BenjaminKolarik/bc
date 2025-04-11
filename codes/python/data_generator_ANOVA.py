@@ -3,7 +3,6 @@ import pandas as pd
 import os
 import numpy as np
 
-
 def generate_anova_data(num_samples_per_group, num_groups, excel_file, nan_probability=0.02):
 
     data = {'group': [], 'value': []}

@@ -21,7 +21,6 @@ def perform_regression(data):
     x = data['x']
     y = data['y']
     slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-    print(f"Equation: y = {intercept:.4f} + {slope:.4f} * x")
 
     return slope, intercept, r_value, p_value, std_err
 

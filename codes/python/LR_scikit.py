@@ -21,7 +21,6 @@ def perform_regression(data):
     x = data[['x']]
     y = data['y']
     model = LinearRegression().fit(x, y)
-    print(f"Equation: y = {model.intercept_:.4f} + {model.coef_[0]:.4f} * x")
     return model
 
 def evaluate_model(model, x, y):
@@ -52,16 +51,6 @@ def plot_regression(data, model, output_dir):
     plt.ylabel('Residuals')
     plt.title('Residual Plot')
     plt.savefig(output_dir + 'residual_plot.png')
-    plt.close()
-
-    plt.figure(figsize=(10, 6))
-    plt.scatter(data['x'], data['y'], label='Data', color='blue')
-    plt.plot(data['x'], y_pred, label='Regression Line', color='red')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title('Linear Regression')
-    plt.legend()
-    plt.savefig(output_dir + 'alt.png')
     plt.close()
 
 def test_assumptions(data, slope, intercept):

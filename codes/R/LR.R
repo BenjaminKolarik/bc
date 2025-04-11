@@ -13,7 +13,6 @@ if (!dir.exists(output_dir)) {
 }
 
 data <- read_excel("input/LR/LR_1000.xlsx")
-str(data)
 
 data_clean <- data %>% drop_na(x, y)
 
@@ -31,7 +30,11 @@ adj_r_squared <- summary_result$adj.r.squared
 print(paste("R-squared:", r_squared))
 print(paste("Adjusted R-squared:", adj_r_squared))
 
-# Create and save linear regression plot
+residuals <- residuals(model)
+print("Summary of Residuals:")
+print(summary(residuals))
+
+
 regression_plot <- ggplot(data_clean, aes(x = x, y = y)) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
@@ -40,11 +43,7 @@ regression_plot <- ggplot(data_clean, aes(x = x, y = y)) +
        y = "Dependent Variable") +
   theme_minimal()
 ggsave(file.path(output_dir, "linear_regression.jpeg"), plot = regression_plot, width = 10, height = 6, dpi = 300)
-residuals <- residuals(model)
-print("Summary of Residuals:")
-print(summary(residuals))
 
-# Create and save residual plot
 residual_plot <- ggplot(data_clean, aes(x = model$fitted.values, y = residuals)) +
   geom_point() +
   geom_hline(yintercept = 0, color = "red") +
@@ -73,11 +72,9 @@ ggsave(file.path(output_dir, "residual_histogram.jpeg"), plot = residual_histogr
 bp_test <- bptest(model)
 print(bp_test)
 
-# Perform Shapiro-Wilk test for normality
 shapiro_test <- shapiro.test(residuals)
 print(shapiro_test)
 
-# Perform Durbin-Watson test for independence
 dw_test <- dwtest(model)
 print(dw_test)
 
@@ -90,3 +87,4 @@ append_execution_time(
     method_name = "LR",
     computer_name = "Windows Ryzen 9 5900x 32GB"
 )
+

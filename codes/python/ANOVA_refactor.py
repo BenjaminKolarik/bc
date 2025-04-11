@@ -235,8 +235,6 @@ def main():
         results, anova_wait_time = perform_anova(data, group_col, value_col)
         wait_time += anova_wait_time
 
-
-
         print(f"\nF-statistic: {results['f_statistic']:.4f}")
         print(f"P-value: {results['p_value']:.4f}")
         print(f"Significant: {'Yes' if results['is_significant'] else 'No'}")
@@ -254,6 +252,7 @@ def main():
     return wait_time
 
 if __name__ == "__main__":
+    name = timed_input("Name: ")
     result = measure_execution_time(main)
 
     if isinstance(result, tuple):

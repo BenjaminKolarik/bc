@@ -3,26 +3,28 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+
+from scipy.stats import shapiro
 from sklearn.metrics import mean_squared_error
+from statsmodels.stats.diagnostic import het_breuschpagan
+from statsmodels.stats.stattools import durbin_watson
 
 from codes.python.execution_timer import measure_execution_time, append_execution_time
-
-def data_load(file_path):
-
-   data = pd.read_excel(file_path)
-   data = data[['y', 'x']].dropna()
-
-   return data
 
 def perform_regression(data):
     x = data['x']
     y = data['y']
 
     x = sm.add_constant(x)
-
+    print(x)
     model = sm.OLS(y, x).fit()
 
     return model
+
+def data_load(file_path):
+    data = pd.read_excel(file_path)
+    data = data[['y', 'x']].dropna()
+    return data
 
 def evaluate_model(model, x, y):
     y_pred = model.predict(x)
@@ -63,6 +65,24 @@ def plot_regression(data, model, output_dir):
     plt.legend()
     plt.savefig(output_dir + 'alt.png')
     plt.close()
+
+def test_assumptions(data, slope, intercept):
+    x = data['x']
+    y = data['y']
+    y_pred = intercept + slope * x
+    residuals = y - y_pred
+
+    # Homoscedasticity test (Breusch-Pagan)
+    bp_test = het_breuschpagan(residuals, sm.add_constant(x))
+    print(f"\nBreusch-Pagan test: p-value = {bp_test[1]:.4f}")
+
+    # Normality test (Shapiro-Wilk)
+    shapiro_test = shapiro(residuals)
+    print(f"Shapiro-Wilk test: p-value = {shapiro_test.pvalue:.4f}")
+
+    # Independence test (Durbin-Watson)
+    dw_test = durbin_watson(residuals)
+    print(f"Durbin-Watson test: statistic = {dw_test:.4f}")
 
 
 def main():
