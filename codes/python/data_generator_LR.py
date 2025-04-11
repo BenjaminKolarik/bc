@@ -40,6 +40,7 @@ def excel_writer(excel_file, data, output_dir = '../../input/LR'):
     print(f"Data written to {file_path}")
 
 
-generate_data(100, excel_file="LR_100.xlsx")
-generate_data(1000, excel_file="LR_1000.xlsx")
-generate_data(10000, excel_file="LR_10000.xlsx")
+#generate_data(100, excel_file="LR_100.xlsx")
+#generate_data(1000, excel_file="LR_1000.xlsx")
+#generate_data(10000, excel_file="LR_10000.xlsx")
+generate_data(100000, excel_file="LR_100000.xlsx")

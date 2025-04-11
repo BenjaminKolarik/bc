@@ -37,6 +37,7 @@ def excel_writer(excel_file, data, output_dir='../../input/ANOVA'):
     print(f"Data written to {file_path}")
 
 
-generate_anova_data(num_samples_per_group=20, num_groups=5, excel_file="ANOVA_small.xlsx")
-generate_anova_data(num_samples_per_group=125, num_groups=8, excel_file="ANOVA_medium.xlsx")
-generate_anova_data(num_samples_per_group=1000, num_groups=10, excel_file="ANOVA_large.xlsx")
+#generate_anova_data(num_samples_per_group=20, num_groups=5, excel_file="ANOVA_small.xlsx")
+#generate_anova_data(num_samples_per_group=125, num_groups=8, excel_file="ANOVA_medium.xlsx")
+#generate_anova_data(num_samples_per_group=1000, num_groups=10, excel_file="ANOVA_large.xlsx")
+generate_anova_data(num_samples_per_group=5000, num_groups=20, excel_file="ANOVA_extra_large.xlsx")
