@@ -13,7 +13,7 @@ from statsmodels.stats.stattools import durbin_watson
 
 from codes.python.execution_timer import measure_execution_time, append_execution_time, timed_input
 
-def load_data(file_path):
+def data_load(file_path):
 
     try:
         data = pd.read_excel(file_path)
@@ -164,18 +164,18 @@ def validate_significance(p_value, default_significance=0.95):
     print(f"Significance level: {significance_value}")
     print(f"P-value: {p_value}")
     print(f"Result is {'significant' if is_significant else 'not significant'} at the {significance_value} level.")
-    user_input, wait_time = timed_input("\nDo you want to change the significance level? (y/n): ")
+    #user_input, wait_time = timed_input("\nDo you want to change the significance level? (y/n): ")
 
-    if user_input.lower() == 'y':
-        try:
-            sig_input, sig_wait_time = timed_input("Enter the significance level (e.g., 0.90): ")
-            wait_time += sig_wait_time
-            new_significance = float(sig_input)
-            is_significant = p_value < new_significance
-            print(f"Result is {'significant' if is_significant else 'not significant'} at the {new_significance} level.")
-        except ValueError:
-            print("Invalid input. Using default significance level.")
-    return is_significant, significance_value, wait_time
+    # if user_input.lower() == 'y':
+    #     try:
+    #         sig_input, sig_wait_time = timed_input("Enter the significance level (e.g., 0.90): ")
+    #         wait_time += sig_wait_time
+    #         new_significance = float(sig_input)
+    #         is_significant = p_value < new_significance
+    #         print(f"Result is {'significant' if is_significant else 'not significant'} at the {new_significance} level.")
+    #     except ValueError:
+    #         print("Invalid input. Using default significance level.")
+    return is_significant, significance_value #wait_time
 
 
 
@@ -208,8 +208,8 @@ def perform_linear_regression(data, x_column, y_column):
         std_err = np.sqrt(mse / calculations['x_diff_mean_squared_sum'])
         rmse = np.sqrt(mse)
         mae = np.mean(np.abs(error_values))
-
-        is_significant, significance_value, wait_time = validate_significance(p_value)
+        #sem by este malo ist wait_time ako premenna
+        is_significant, significance_value = validate_significance(p_value)
 
         equation = f"y = {b0:.4f} + {b1:.4f}x"
         results = {
@@ -238,7 +238,7 @@ def perform_linear_regression(data, x_column, y_column):
             "degrees_of_freedom": degrees_of_freedom
         }
 
-        return results, wait_time
+        return results#, wait_time
 
     except Exception as e:
         print(f"Error in linear regression calculations: {e}")
@@ -481,7 +481,7 @@ def print_summary(results):
 
 def main():
     wait_time = 0
-    data = load_data('../../input/LR/LR_1000.xlsx')
+    data = data_load('../../input/LR/LR_100.xlsx')
     data = preprocess_data(data)
 
     if data is None:
@@ -491,9 +491,9 @@ def main():
     x_column = "x"
     y_column = "y"
 
-    try:
-        results, lr_wait_time = perform_linear_regression(data, x_column, y_column)
-        wait_time = lr_wait_time
+    try: #tu by malo ist lr_wait_time ako druha premenna
+        results = perform_linear_regression(data, x_column, y_column)
+        #wait_time = lr_wait_time
 
         if results is None:
             print("Linear regression failed")
@@ -525,8 +525,9 @@ if __name__ == "__main__":
 
         append_execution_time(
             execution_time - wait_time,
-            method="LR - Refactored",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            method="LR - procedural - excel",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )
     else:
         execution_time = result
@@ -534,6 +535,7 @@ if __name__ == "__main__":
 
         append_execution_time(
             execution_time,
-            method="LR - Refactored",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            method="LR - procedural - excel",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )

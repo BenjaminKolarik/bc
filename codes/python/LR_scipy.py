@@ -87,7 +87,7 @@ def test_assumptions(data, slope, intercept):
 def main():
 
     os.makedirs("../../output/LR/LR_scipy", exist_ok=True)
-    data = data_load("../../input/LR/LR_1000.xlsx")
+    data = data_load('../../input/LR/LR_100.xlsx')
     slope, intercept, r_value, p_value, std_err = perform_regression(data)
     evaluate_model(slope, intercept, data['x'], data['y'])
     plot_regression(data, slope, intercept, "../../output/LR/LR_scipy/")
@@ -101,16 +101,20 @@ if __name__ == "__main__":
         print(f"\nTotal execution time: {execution_time:.6f} seconds")
         print(f"Waiting time: {wait_time:.6f} seconds")
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
+
         append_execution_time(
-            execution_time,
-            method="LR_scipy",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            execution_time - wait_time,
+            method="LR - scipy",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )
     else:
         execution_time = result
         print(f"\nTotal execution time: {execution_time:.6f} seconds")
+
         append_execution_time(
             execution_time,
-            method="LR_scipy",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            method="LR - scipy",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )

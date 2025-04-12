@@ -10,7 +10,7 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 from codes.python.execution_timer import measure_execution_time, timed_input, append_execution_time
 
-def load_data(file_path):
+def data_load(file_path):
 
     return pd.read_excel(file_path)
 
@@ -65,7 +65,7 @@ def calculate_p_value(f_statistic, df_between, df_within):
 
     return 1 - stats.f.cdf(f_statistic, df_between, df_within)
 
-def validate_f_statistic(f_statistic, p_value, significance_value = None):
+def validate_f_statistic(f_statistic, p_value, significance_value = 0.05):
     if significance_value is None:
         significance_value, wait_time = timed_input("Zadajte hladinu významnosti (napr. 0.95): ")
         significance_value = float(significance_value)
@@ -74,7 +74,7 @@ def validate_f_statistic(f_statistic, p_value, significance_value = None):
     is_significant = p_value < significance_value
     return is_significant, significance_value, wait_time
 
-def perform_anova(data_frame, group_col, value_col, significance_value = None):
+def perform_anova(data_frame, group_col, value_col, significance_value = 0.05):
     wait_time = 0
     groups, group_means, grand_mean, n_total = calculate_group_statistics(data_frame, group_col, value_col)
     SSA, SSE, SST = calculate_sum_of_squares(groups, group_means, grand_mean)
@@ -225,7 +225,7 @@ def test_assumptions(data_frame, group_col, value_col):
 
 def main():
     wait_time = 0
-    data = load_data('../../input/ANOVA/ANOVA_medium.xlsx')
+    data = data_load('../../input/ANOVA/ANOVA_small.xlsx')
     data = preprocess_data(data)
 
     group_col = "group"
@@ -252,7 +252,7 @@ def main():
     return wait_time
 
 if __name__ == "__main__":
-    name = timed_input("Name: ")
+    #name = timed_input("Name: ")
     result = measure_execution_time(main)
 
     if isinstance(result, tuple):
@@ -261,15 +261,21 @@ if __name__ == "__main__":
         print(f"Waiting time: {wait_time:.6f} seconds")
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
 
-        append_execution_time(execution_time - wait_time,
-                             method="ANOVA - own",
-                             computer_name="Windows Ryzen 9 5900x 32GB")
+        append_execution_time(
+            execution_time,
+            method="ANOVA - procedural - excel",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
+        )
     else:
         execution_time = result
         print(f"Total execution time: {execution_time:.6f} seconds")
 
-        append_execution_time(execution_time,
-                             method="ANOVA - own",
-                             computer_name="Windows Ryzen 9 5900x 32GB")
+        append_execution_time(
+            execution_time,
+            method="ANOVA - procedural - excel",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
+        )
 
 

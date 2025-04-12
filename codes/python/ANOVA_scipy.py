@@ -10,7 +10,7 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from codes.python.execution_timer import measure_execution_time, append_execution_time
 
 
-def load_data(file_path):
+def data_load(file_path):
 
     data = pd.read_excel(file_path)
     data_clean = data.dropna(subset = ['value'])
@@ -72,7 +72,7 @@ def post_hoc_analysis(data):
 def main():
 
     os.makedirs("../../output/ANOVA/ANOVA_scipy", exist_ok=True)
-    data = load_data("../../input/ANOVA/ANOVA_medium.xlsx")
+    data = data_load('../../input/ANOVA/ANOVA_small.xlsx')
     f_stat, p_value = perform_anova(data)
     groups_stats = graph(data)
     test_assumptions(data, "group", "value")
@@ -91,9 +91,10 @@ if __name__ == "__main__":
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
 
         append_execution_time(
-            execution_time - wait_time,
-            method="ANOVA_scipy",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            execution_time,
+            method="ANOVA - scipy",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )
     else:
         execution_time = result
@@ -101,6 +102,7 @@ if __name__ == "__main__":
 
         append_execution_time(
             execution_time,
-            method="ANOVA_scipy",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            method="ANOVA - scipy",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )

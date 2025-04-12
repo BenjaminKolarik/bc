@@ -6,6 +6,7 @@ import scipy.stats as stats
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
 from statsmodels.formula.api import ols
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 from codes.python.execution_timer import measure_execution_time, append_execution_time
 
@@ -138,6 +139,28 @@ class ANOVA:
             "Significant": "Yes" if self.results['is_significant'] else "No",
             "Group means": self.results['group_means']
         }
+
+    def run_tukey_test(self):
+        if self.results is None:
+            print("ANOVA results are not available. Run the ANOVA analysis first.")
+            return None
+
+        if not self.results['is_significant']:
+            print("ANOVA results are not significant. Tukey's test will not be performed.")
+            return None
+
+        try:
+            tukey = pairwise_tukeyhsd(
+                self.data[self.value_column],
+                self.data[self.group_column],
+                alpha=1 - self.significance_level
+            )
+            print("\nTukey's HSD Test Results:")
+            print(tukey)
+            return tukey
+        except Exception as e:
+            print(f"Error performing Tukey's test: {str(e)}")
+            return None
 
 
 class ANOVAVisualizer:
@@ -274,7 +297,7 @@ class ANOVAExporter:
 def main():
 
     data_loader = DataLoader()
-    file_path = '../../input/ANOVA/ANOVA_medium.xlsx'
+    file_path = '../../input/ANOVA/ANOVA_small.xlsx'
     data = data_loader.load_data(file_path)
     data = data_loader.preprocess_data(data)
 
@@ -313,6 +336,8 @@ def main():
         print(f"P-value: {summary['P-value']}")
         print(f"Significant: {summary['Significant']}")
 
+        if results['is_significant']:
+            anova.run_tukey_test()
     except Exception as e:
         print(f"An error occurred in the ANOVA application: {str(e)}")
         import traceback
@@ -331,9 +356,10 @@ if __name__ == "__main__":
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
 
         append_execution_time(
-            execution_time - wait_time,
-            method="ANOVA - OOP",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            execution_time,
+            method="ANOVA - OOP - excel",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )
     else:
         execution_time = result
@@ -341,6 +367,7 @@ if __name__ == "__main__":
 
         append_execution_time(
             execution_time,
-            method="ANOVA - OOP",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            method="ANOVA - OOP - excel",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )

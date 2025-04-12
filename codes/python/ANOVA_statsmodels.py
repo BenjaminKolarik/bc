@@ -18,7 +18,7 @@ def perform_anova(data):
 
     return model, anova_table
 
-def load_data(file_path):
+def data_load(file_path):
     data = pd.read_excel(file_path)
     data_clean = data.dropna(subset=['value'])
     return data_clean
@@ -80,7 +80,7 @@ def post_hoc_analysis(data):
 def main():
     os.makedirs("../../output/ANOVA/ANOVA_statsmodels", exist_ok=True)
 
-    data = load_data("../../input/ANOVA/ANOVA_medium.xlsx")
+    data = data_load('../../input/ANOVA/ANOVA_small.xlsx')
 
     model, anova_table = perform_anova(data)
 
@@ -104,9 +104,10 @@ if __name__ == "__main__":
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
 
         append_execution_time(
-            execution_time - wait_time,
-            method="ANOVA_statsmodels",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            execution_time,
+            method="ANOVA - statsmodels",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )
     else:
         execution_time = result
@@ -114,6 +115,7 @@ if __name__ == "__main__":
 
         append_execution_time(
             execution_time,
-            method="ANOVA_statsmodels",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            method="ANOVA - statsmodels",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )

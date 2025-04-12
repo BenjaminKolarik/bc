@@ -12,7 +12,7 @@ if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
 }
 
-data <- read_excel("input/LR/LR_1000.xlsx")
+data <- read_excel("input/LR/LR_100.xlsx")
 
 data_clean <- data %>% drop_na(x, y)
 
@@ -72,8 +72,8 @@ ggsave(file.path(output_dir, "residual_histogram.jpeg"), plot = residual_histogr
 bp_test <- bptest(model)
 print(bp_test)
 
-shapiro_test <- shapiro.test(residuals)
-print(shapiro_test)
+#shapiro_test <- shapiro.test(residuals)
+#print(shapiro_test)
 
 dw_test <- dwtest(model)
 print(dw_test)

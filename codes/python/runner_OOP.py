@@ -1,46 +1,36 @@
 import fileinput
 import subprocess
 
-
 # List of scripts to run
-#script_paths = ['LR_refactor_2.py', 'LR_scipy.py', 'LR_statsmodels.py', 'LR_scikit.py'] #OOP missing
-#script_paths = ['ANOVA_refactor.py','ANOVA_scipy.py', 'ANOVA_statsmodels.py'] #OOP missing
-#script_paths = ['LR_refactor_2.py']  # OOP missing
-script_paths = ['ANOVA_refactor.py']  # OOP missing
+#script_paths = ['LR_OOP.py']
+script_paths = ['ANOVA_OOP.py']  # OOP missing
 # Base file path and range of values
 #base_path = "../../input/LR/LR_"
 base_path = "../../input/ANOVA/ANOVA_"
+
 #values = [100, 1000, 10000, 100000]
 values = ['small', 'medium', 'large', 'extra_large']
-excel_file_sizes = ['small', 'medium', 'large', 'extra_large']
+sizes = ['small', 'medium', 'large', 'extra_large']  # Mapping for sizes
+
 # Number of repetitions for each value
 repetitions = 10
 
 # Lines to replace
-#original_lines = [
-#    "data = data_load('../../input/LR/LR_100.xlsx')",
-#    'excel_file="../../output/execution_times/execution_times_python_small.xlsx"'
-#]
-#new_lines_template = [
-#    "data = data_load('{base_path}{value}.xlsx')",
-#   'excel_file="../../output/execution_times/execution_times_python_{size}.xlsx"'
-#]
-
 original_lines = [
-    "data = data_load('../../input/ANOVA/ANOVA_small.xlsx')",
+    "file_path = '../../input/ANOVA/ANOVA_small.xlsx'",
     'excel_file="../../output/execution_times/execution_times_python_small.xlsx"'
 ]
 new_lines_template = [
-    "data = data_load('{base_path}{value}.xlsx')",
+    "file_path = '../../input/ANOVA/ANOVA_{value}.xlsx'",
     'excel_file="../../output/execution_times/execution_times_python_{size}.xlsx"'
 ]
 
-for value, size in zip(values, excel_file_sizes):
+for value, size in zip(values, sizes):
     for script_path in script_paths:
         for _ in range(repetitions):
             # Generate new lines dynamically
             new_lines = [
-                new_lines_template[0].format(base_path=base_path, value=value),
+                new_lines_template[0].format(value=value),
                 new_lines_template[1].format(size=size)
             ]
 

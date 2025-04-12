@@ -23,7 +23,7 @@ def timed_input(prompt=""):
     return user_input, resume_time - pause_time
 
 
-def append_execution_time(execution_time, method, computer_name, excel_file="../../output/execution_times/execution_times_python_medium.xlsx"):
+def append_execution_time(execution_time, method, computer_name, excel_file):
     Path(os.path.dirname(excel_file)).mkdir(parents=True, exist_ok=True)
 
     new_data = pd.DataFrame({

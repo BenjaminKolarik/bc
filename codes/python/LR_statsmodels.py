@@ -89,7 +89,7 @@ def main():
 
     os.makedirs("../../output/LR/LR_statsmodels", exist_ok=True)
 
-    data = data_load("../../input/LR/LR_1000.xlsx")
+    data = data_load('../../input/LR/LR_100.xlsx')
     model = perform_regression(data)
     print(model.summary())
     evaluate_model(model, sm.add_constant(data['x']), data['y'])
@@ -102,19 +102,23 @@ if __name__ == "__main__":
 
     if isinstance(result, tuple):
         wait_time, execution_time = result
-        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"\nTotal execution time: {execution_time:.6f} seconds")
         print(f"Waiting time: {wait_time:.6f} seconds")
         print(f"Active execution time: {execution_time - wait_time:.6f} seconds")
+
         append_execution_time(
-            execution_time,
-            method="LR_statsmodels",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            execution_time - wait_time,
+            method="LR - statsmodels",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )
     else:
         execution_time = result
-        print(f"Total execution time: {execution_time:.6f} seconds")
+        print(f"\nTotal execution time: {execution_time:.6f} seconds")
+
         append_execution_time(
             execution_time,
-            method="LR_statsmodels",
-            computer_name="Windows Ryzen 9 5900x 32GB"
+            method="LR - statsmodels",
+            computer_name="Windows Ryzen 9 5900x 32GB",
+            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
         )

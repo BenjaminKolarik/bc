@@ -1,4 +1,4 @@
-append_execution_time <- function(time_second, method_name = "LR", excel_file = "output/execution_times/execution_times_R_medium.xlsx", computer_name) {
+append_execution_time <- function(time_second, method_name = "LR", excel_file = "output/execution_times/R/execution_times_R_small.xlsx", computer_name) {
   library(openxlsx)
 
  dir.create(dirname(excel_file), recursive = TRUE, showWarnings = FALSE)
