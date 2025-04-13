@@ -94,7 +94,7 @@ if __name__ == "__main__":
             execution_time,
             method="ANOVA - scipy",
             computer_name="Windows Ryzen 9 5900x 32GB",
-            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
+            excel_file="../../output/execution_times/h/moje/execution_times_python_small.xlsx"
         )
     else:
         execution_time = result
@@ -104,5 +104,5 @@ if __name__ == "__main__":
             execution_time,
             method="ANOVA - scipy",
             computer_name="Windows Ryzen 9 5900x 32GB",
-            excel_file="../../output/execution_times/execution_times_python_small.xlsx"
+            excel_file="../../output/execution_times/h/moje/execution_times_python_small.xlsx"
         )

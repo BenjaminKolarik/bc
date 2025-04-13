@@ -12,7 +12,7 @@ if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
 }
 
-data <- read_excel("input/LR/LR_100.xlsx")
+data <- read_excel("input/LR/LR_100000.xlsx")
 
 data_clean <- data %>% drop_na(x, y)
 
