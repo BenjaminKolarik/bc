@@ -71,17 +71,14 @@ def test_assumptions(data, slope, intercept):
     y_pred = intercept + slope * x
     residuals = y - y_pred
 
-    # Homoscedasticity test (Breusch-Pagan)
     bp_test = het_breuschpagan(residuals, sm.add_constant(x))
     print(f"\nBreusch-Pagan test: p-value = {bp_test[1]:.4f}")
 
-    # Normality test (Shapiro-Wilk)
     shapiro_test = shapiro(residuals)
-    print(f"Shapiro-Wilk test: p-value = {shapiro_test.pvalue:.4f}")
+    print(f"\n\n\nShapiro-Wilk test: p-value = {shapiro_test.pvalue:.4f}")
 
-    # Independence test (Durbin-Watson)
     dw_test = durbin_watson(residuals)
-    print(f"Durbin-Watson test: statistic = {dw_test:.4f}")
+    print(f"\n\n\nDurbin-Watson test: statistic = {dw_test:.4f}")
 
 
 def main():

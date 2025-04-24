@@ -1,4 +1,3 @@
-start_time <- Sys.time()
 
 library(readxl)
 library(dplyr)
@@ -52,13 +51,15 @@ barplot <- ggplot(group_means, aes(x = group, y = mean, fill = group)) +
 ggsave(file.path(output_dir, "barplot.jpg"), plot = barplot, width = 10, height = 6)
 
 tukey_result <- TukeyHSD(anova_result)
+print(tukey_result)
 
 residuals <- residuals(anova_result)
-#shapiro_test <- shapiro.test(residuals)
-#print(shapiro_test)
+shapiro_test <- shapiro.test(residuals)
+print(shapiro_test)
 levene_test <- car::leveneTest(value ~ group, data = data_clean)
 print(levene_test)
 
+start_time <- Sys.time()
 end_time <- Sys.time()
 execution_time <- end_time - start_time
 execution_time

@@ -12,7 +12,7 @@ if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
 }
 
-data <- read_excel("input/LR/LR_100000.xlsx")
+data <- read_excel("input/LR/LR_100.xlsx")
 
 data_clean <- data %>% drop_na(x, y)
 
@@ -34,11 +34,13 @@ residuals <- residuals(model)
 print("Summary of Residuals:")
 print(summary(residuals))
 
+slope <- coefficients[2]
+intercept <- coefficients[1]
 
 regression_plot <- ggplot(data_clean, aes(x = x, y = y)) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
-  labs(title = "Linear Regression",
+  labs(title = paste("Linear Regression: y =", round(intercept, 2), "* x +", round(slope, 2)),
        x = "Independent Variable",
        y = "Dependent Variable") +
   theme_minimal()
@@ -72,8 +74,8 @@ ggsave(file.path(output_dir, "residual_histogram.jpeg"), plot = residual_histogr
 bp_test <- bptest(model)
 print(bp_test)
 
-#shapiro_test <- shapiro.test(residuals)
-#print(shapiro_test)
+shapiro_test <- shapiro.test(residuals)
+print(shapiro_test)
 
 dw_test <- dwtest(model)
 print(dw_test)

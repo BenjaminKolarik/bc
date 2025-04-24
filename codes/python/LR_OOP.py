@@ -175,18 +175,15 @@ class RegressionExporter:
 
         file_path = os.path.join(self.output_dir, self.file_name)
 
-        # Create DataFrames
         df1 = self._create_computation_table()
         df2 = self._create_data_table()
         df3 = self._create_variability_table()
 
-        # Write to Excel
         with pd.ExcelWriter(file_path) as writer:
             df1.to_excel(writer, sheet_name='Výpočtová tabuľka1', index=False)
             df2.to_excel(writer, sheet_name='Výpočtová tabuľka2', index=False)
             df3.to_excel(writer, sheet_name='LR', index=False)
 
-        # Format the Excel file and add images
         self._format_excel_file(file_path)
         print(f"Data exported to {file_path}")
 
@@ -331,8 +328,8 @@ def main():
     tester = RegressionTester(regression)
     tester.test_assumptions()
 
-    #exporter = RegressionExporter(regression, excel_output_dir, file_name)
-    #exporter.export_to_excel()
+    exporter = RegressionExporter(regression, excel_output_dir, file_name)
+    exporter.export_to_excel()
 
 
 if __name__ == "__main__":

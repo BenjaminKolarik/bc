@@ -28,27 +28,22 @@ new_lines_template = [
 for value, size in zip(values, sizes):
     for script_path in script_paths:
         for _ in range(repetitions):
-            # Generate new lines dynamically
             new_lines = [
                 new_lines_template[0].format(value=value),
                 new_lines_template[1].format(size=size)
             ]
 
-            # Modify the script
             with fileinput.FileInput(script_path, inplace=True, backup='.bak', encoding='utf-8') as file:
                 for line in file:
                     for original, new in zip(original_lines, new_lines):
                         line = line.replace(original, new)
                     print(line, end='')
 
-            # Run the modified script
             print(f"Running script: {script_path} with file: {base_path}{value}.xlsx and size: {size}")
             result = subprocess.run(['python', script_path], capture_output=True, text=True)
 
-            # Print the output and errors
             print("Output:", result.stdout)
 
-            # Restore the original lines for the next iteration
             with fileinput.FileInput(script_path, inplace=True, encoding='utf-8') as file:
                 for line in file:
                     for new, original in zip(new_lines, original_lines):

@@ -125,16 +125,6 @@ def plot_anova_results(data_frame, group_col, value_col, output_dir = '../../out
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'anova_barplot.png'))
 
-    # #Residual plot
-    # residuals = data_frame[value_col] - data_frame.groupby(group_col)[value_col].transform('mean')
-    # plt.figure(figsize=(10, 6))
-    # sns.residplot(x=group_col, y=residuals, data = data_frame, lowess=True, line_kws={'color': 'red', 'lw': 1})
-    # plt.xlabel(group_col)
-    # plt.ylabel('Residuals')
-    # plt.title('Residual Plot')
-    # plt.tight_layout()
-    # plt.savefig(os.path.join(output_dir, 'anova_residual_plot.png'))
-
     plt.close('all')
 
 def export_anova_results_to_excel(results, output_dir = '../../output/ANOVA/ANOVA_base/excel', file_name = 'anova_results.xlsx'):
